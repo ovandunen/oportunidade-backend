@@ -1,0 +1,69 @@
+plugins {
+    id 'java'
+
+}
+
+group = 'ao.co.oportunidade'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+     // Mapstruct
+     implementation 'org.mapstruct:mapstruct:1.6.3'
+     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+
+      // Lombok
+      compileOnly 'org.projectlombok:lombok:1.18.34'
+      annotationProcessor 'org.projectlombok:lombok:1.18.34'
+
+      // Binding for Lombok and MapStruct
+      annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+
+      // Quarkus BOM (Bill of Materials)
+      implementation platform('io.quarkus:quarkus-bom:3.6.5')
+
+      // Quarkus REST and JSON
+      implementation 'io.quarkus:quarkus-resteasy-reactive-jackson'
+
+      implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
+
+      implementation 'jakarta.inject:jakarta.inject-api:2.0.1'
+
+      // Quarkus Hibernate ORM with Panache
+      implementation 'io.quarkus:quarkus-hibernate-orm-panache'
+
+      // Database (PostgreSQL)
+      implementation 'io.quarkus:quarkus-jdbc-postgresql'
+
+      // Quarkus Arc (CDI)
+      implementation 'io.quarkus:quarkus-arc'
+
+      // Testing
+      testImplementation 'io.quarkus:quarkus-junit5'
+      testImplementation 'org.junit.jupiter:junit-jupiter-api'
+      testImplementation 'org.junit.jupiter:junit-jupiter-engine'
+      testImplementation 'io.rest-assured:rest-assured'
+      testImplementation 'org.testng:testng:7.8.0' // Use the latest stable version
+
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
+
+
+test {
+    useTestNG() // Use TestNG for running tests
+    failOnNoDiscoveredTests = false // Optional: Disable failing if no tests are found
+    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+}

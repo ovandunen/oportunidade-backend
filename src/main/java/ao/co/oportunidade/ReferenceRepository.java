@@ -5,10 +5,12 @@ import ao.co.oportunidade.entity.EntityMapper;
 import ao.co.oportunidade.entity.ReferenceEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.hibernate.SessionFactory;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class ReferenceRepository extends Repository<Reference,ReferenceEntity>
@@ -28,6 +30,10 @@ public class ReferenceRepository extends Repository<Reference,ReferenceEntity>
     }
 
 
+    /**
+     * @param domain
+     * @return
+     */
     @Override
     protected Optional<Reference> findDomainById(Reference domain) {
 
@@ -37,6 +43,9 @@ public class ReferenceRepository extends Repository<Reference,ReferenceEntity>
     }
 
 
+    /**
+     * @param reference
+     */
     @Override
     protected void createDomain(final Reference reference) {
         getEntityManager().persist(mapper.mapToEntity(reference));
@@ -54,11 +63,11 @@ public class ReferenceRepository extends Repository<Reference,ReferenceEntity>
                     .createQuery("SELECT r FROM ReferenceEntity r WHERE r.referenceNumber = :refNum", ReferenceEntity.class)
                     .setParameter("refNum", referenceNumber)
                     .getResultList();
-            
+
             if (results.isEmpty()) {
                 return Optional.empty();
             }
-            
+
             return Optional.ofNullable(mapper.mapToDomain(results.get(0)));
         } catch (Exception e) {
             return Optional.empty();
