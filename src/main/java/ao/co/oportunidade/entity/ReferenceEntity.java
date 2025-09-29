@@ -2,7 +2,10 @@ package ao.co.oportunidade.entity;
 
 import ao.co.oportunidade.DomainEntity;
 import ao.co.oportunidade.valueobject.AmountDomainValue;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -43,6 +46,7 @@ public class ReferenceEntity extends DomainEntity {
     private String entity;
     private String referenceNumber;
     private String currency;
+    private List<AmountDomainValue> amounts;
 
     @ElementCollection
     @CollectionTable(name = "reference_amounts", joinColumns = @JoinColumn(name = "reference_id"))
