@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-
+    id 'io.quarkus' version '3.15.1'
 }
 
 group = 'ao.co.oportunidade'
@@ -10,45 +10,50 @@ repositories {
     mavenCentral()
 }
 
+def quarkusVersion = '3.15.1'  // Match plugin version
+
 dependencies {
+    // Quarkus BOM - MUST use enforcedPlatform, not platform
+    implementation enforcedPlatform("io.quarkus.platform:quarkus-bom:${quarkusVersion}")
 
-     // Mapstruct
-     implementation 'org.mapstruct:mapstruct:1.6.3'
-     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    // Quarkus core
+    implementation 'io.quarkus:quarkus-resteasy-reactive-jackson'
+    implementation 'io.quarkus:quarkus-hibernate-orm-panache'
+    implementation 'io.quarkus:quarkus-jdbc-postgresql'
+    implementation 'io.quarkus:quarkus-arc'
 
-      // Lombok
-      compileOnly 'org.projectlombok:lombok:1.18.34'
-      annotationProcessor 'org.projectlombok:lombok:1.18.34'
+    // MapStruct
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
-      // Binding for Lombok and MapStruct
-      annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+    // Lombok
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
-      // Quarkus BOM (Bill of Materials)
-      implementation platform('io.quarkus:quarkus-bom:3.6.5')
+    // Binding for Lombok and MapStruct
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
-      // Quarkus REST and JSON
-      implementation 'io.quarkus:quarkus-resteasy-reactive-jackson'
+    // REMOVED: These are redundant - Quarkus BOM provides them
+    // implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'  ❌
+    // implementation 'jakarta.inject:jakarta.inject-api:2.0.1'  ❌
 
-      implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
+    // Testing - CHOOSE ONE: Either TestNG OR JUnit, not both
+    // Option A: TestNG (recommended based on your question)
+    testImplementation 'io.quarkus:quarkus-test-testng'
+    testImplementation 'org.testng:testng:7.10.2'
 
-      implementation 'jakarta.inject:jakarta.inject-api:2.0.1'
+    // Option B: JUnit (comment out if using TestNG)
+    // testImplementation 'io.quarkus:quarkus-junit5'
+    // testImplementation 'org.junit.jupiter:junit-jupiter'
 
-      // Quarkus Hibernate ORM with Panache
-      implementation 'io.quarkus:quarkus-hibernate-orm-panache'
+    // Common test dependencies
+    testImplementation 'io.rest-assured:rest-assured'
+    testImplementation 'org.mockito:mockito-core:5.14.2'
+    testImplementation 'org.assertj:assertj-core:3.26.3'
 
-      // Database (PostgreSQL)
-      implementation 'io.quarkus:quarkus-jdbc-postgresql'
-
-      // Quarkus Arc (CDI)
-      implementation 'io.quarkus:quarkus-arc'
-
-      // Testing
-      testImplementation 'io.quarkus:quarkus-junit5'
-      testImplementation 'org.junit.jupiter:junit-jupiter-api'
-      testImplementation 'org.junit.jupiter:junit-jupiter-engine'
-      testImplementation 'io.rest-assured:rest-assured'
-      testImplementation 'org.testng:testng:7.8.0' // Use the latest stable version
-
+    // TestContainers
+    testImplementation 'org.testcontainers:testcontainers:1.20.4'
+    testImplementation 'org.testcontainers:postgresql:1.20.4'
 }
 
 java {
@@ -61,9 +66,26 @@ tasks.withType(JavaCompile) {
     options.compilerArgs << '-parameters'
 }
 
-
 test {
-    useTestNG() // Use TestNG for running tests
-    failOnNoDiscoveredTests = false // Optional: Disable failing if no tests are found
-    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+    useTestNG {
+        // Specify TestNG XML suite
+        suites 'src/test/resources/testng.xml'
+
+        // Configure parallel execution
+        parallel = 'methods'
+        threadCount = 4
+
+        // Configure groups
+        includeGroups 'unit', 'integration'
+        // excludeGroups 'slow'
+    }
+
+    // Quarkus requirement
+    systemProperty 'java.util.logging.manager', 'org.jboss.logmanager.LogManager'
+
+    // Optional
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat = "full"
+    }
 }
