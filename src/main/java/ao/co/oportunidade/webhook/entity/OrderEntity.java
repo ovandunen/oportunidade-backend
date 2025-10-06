@@ -1,20 +1,19 @@
 package ao.co.oportunidade.webhook.entity;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import ao.co.oportunidade.DomainEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Entity representing an order that is awaiting or has received payment.
- * Links to Reference entity for AppyPay payment references.
+ * JPA Entity for Order persistence.
+ * Separated from domain model following DDD principles.
  */
 @Entity
 @Table(name = "orders", indexes = {
@@ -22,12 +21,30 @@ import java.util.UUID;
     @Index(name = "idx_order_status", columnList = "status"),
     @Index(name = "idx_order_reference_id", columnList = "reference_id")
 })
+@NamedQueries({
+    @NamedQuery(
+        name = OrderEntity.FIND_ALL,
+        query = "SELECT o FROM OrderEntity o"
+    ),
+    @NamedQuery(
+        name = OrderEntity.FIND_BY_ID,
+        query = "SELECT o FROM OrderEntity o WHERE o.id = :id"
+    ),
+    @NamedQuery(
+        name = OrderEntity.FIND_BY_MERCHANT_TX_ID,
+        query = "SELECT o FROM OrderEntity o WHERE o.merchantTransactionId = :merchantTxId"
+    )
+})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Order extends PanacheEntityBase {
+public class OrderEntity extends DomainEntity {
+
+    public static final String FIND_ALL = "Order.findAll";
+    public static final String FIND_BY_ID = "Order.findById";
+    public static final String FIND_BY_MERCHANT_TX_ID = "Order.findByMerchantTxId";
+    public static final String PRIMARY_KEY = "id";
 
     @Id
     @Column(name = "id", nullable = false)
@@ -37,7 +54,7 @@ public class Order extends PanacheEntityBase {
     private String merchantTransactionId;
 
     @Column(name = "reference_id")
-    private UUID referenceId; // Links to Reference entity
+    private UUID referenceId;
 
     @Column(name = "amount", nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;
@@ -45,9 +62,8 @@ public class Order extends PanacheEntityBase {
     @Column(name = "currency", nullable = false, length = 3)
     private String currency;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    private OrderStatus status;
+    private String status;
 
     @Column(name = "customer_name", length = 255)
     private String customerName;
@@ -79,16 +95,5 @@ public class Order extends PanacheEntityBase {
     @PreUpdate
     protected void onUpdate() {
         updatedDate = Instant.now();
-    }
-
-    /**
-     * Order status enumeration
-     */
-    public enum OrderStatus {
-        PENDING,     // Order created, awaiting payment
-        PAID,        // Payment received and confirmed
-        FAILED,      // Payment failed
-        CANCELLED,   // Order cancelled
-        REFUNDED     // Payment refunded
     }
 }

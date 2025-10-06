@@ -1,15 +1,18 @@
 package ao.co.oportunidade.webhook.entity;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import ao.co.oportunidade.DomainEntity;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Entity for tracking webhook events to ensure idempotency and provide debugging capabilities.
- * Prevents duplicate processing of the same webhook.
+ * JPA Entity for WebhookEvent persistence.
+ * Separated from domain model following DDD principles.
  */
 @Entity
 @Table(name = "webhook_events", indexes = {
@@ -17,12 +20,30 @@ import java.util.UUID;
     @Index(name = "idx_webhook_status", columnList = "processingStatus"),
     @Index(name = "idx_webhook_received", columnList = "receivedAt")
 })
+@NamedQueries({
+    @NamedQuery(
+        name = WebhookEventEntity.FIND_ALL,
+        query = "SELECT we FROM WebhookEventEntity we"
+    ),
+    @NamedQuery(
+        name = WebhookEventEntity.FIND_BY_ID,
+        query = "SELECT we FROM WebhookEventEntity we WHERE we.id = :id"
+    ),
+    @NamedQuery(
+        name = WebhookEventEntity.FIND_BY_APPYPAY_TX_ID,
+        query = "SELECT we FROM WebhookEventEntity we WHERE we.appypayTransactionId = :appypayTxId"
+    )
+})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class WebhookEvent extends PanacheEntityBase {
+public class WebhookEventEntity extends DomainEntity {
+
+    public static final String FIND_ALL = "WebhookEvent.findAll";
+    public static final String FIND_BY_ID = "WebhookEvent.findById";
+    public static final String FIND_BY_APPYPAY_TX_ID = "WebhookEvent.findByAppyPayTxId";
+    public static final String PRIMARY_KEY = "id";
 
     @Id
     @Column(name = "id", nullable = false)
@@ -37,9 +58,8 @@ public class WebhookEvent extends PanacheEntityBase {
     @Column(name = "webhook_type", nullable = false, length = 50)
     private String webhookType;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "processingStatus", nullable = false, length = 20)
-    private ProcessingStatus processingStatus;
+    private String processingStatus;
 
     @Column(name = "payload", nullable = false, columnDefinition = "TEXT")
     private String payload;
@@ -74,25 +94,11 @@ public class WebhookEvent extends PanacheEntityBase {
         if (receivedAt == null) {
             receivedAt = now;
         }
-        if (retryCount == 0) {
-            retryCount = 0;
-        }
         updatedDate = now;
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedDate = Instant.now();
-    }
-
-    /**
-     * Processing status for webhook events
-     */
-    public enum ProcessingStatus {
-        RECEIVED,       // Webhook received, not yet processed
-        PROCESSING,     // Currently being processed
-        PROCESSED,      // Successfully processed
-        FAILED,         // Processing failed
-        DEAD_LETTER     // Moved to dead letter queue after max retries
     }
 }

@@ -10,6 +10,7 @@ import org.jboss.logging.Logger;
 /**
  * Async processor for webhook events using SmallRye Reactive Messaging.
  * Processes webhooks asynchronously after immediate HTTP response.
+ * Refactored to use DDD services.
  */
 @ApplicationScoped
 public class WebhookProcessor {
@@ -20,7 +21,7 @@ public class WebhookProcessor {
     PaymentService paymentService;
 
     @Inject
-    WebhookEventService webhookEventService;
+    WebhookEventServiceFacade webhookEventService;
 
     /**
      * Process incoming webhook messages asynchronously.

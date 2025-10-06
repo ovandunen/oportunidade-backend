@@ -1,16 +1,19 @@
 package ao.co.oportunidade.webhook.entity;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import ao.co.oportunidade.DomainEntity;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
 /**
- * Entity representing a payment transaction.
- * Provides audit trail for all payment activities.
+ * JPA Entity for PaymentTransaction persistence.
+ * Separated from domain model following DDD principles.
  */
 @Entity
 @Table(name = "payment_transactions", indexes = {
@@ -19,12 +22,30 @@ import java.util.UUID;
     @Index(name = "idx_payment_tx_status", columnList = "status"),
     @Index(name = "idx_payment_tx_created", columnList = "transactionDate")
 })
+@NamedQueries({
+    @NamedQuery(
+        name = PaymentTransactionEntity.FIND_ALL,
+        query = "SELECT pt FROM PaymentTransactionEntity pt"
+    ),
+    @NamedQuery(
+        name = PaymentTransactionEntity.FIND_BY_ID,
+        query = "SELECT pt FROM PaymentTransactionEntity pt WHERE pt.id = :id"
+    ),
+    @NamedQuery(
+        name = PaymentTransactionEntity.FIND_BY_APPYPAY_TX_ID,
+        query = "SELECT pt FROM PaymentTransactionEntity pt WHERE pt.appypayTransactionId = :appypayTxId"
+    )
+})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class PaymentTransaction extends PanacheEntityBase {
+public class PaymentTransactionEntity extends DomainEntity {
+
+    public static final String FIND_ALL = "PaymentTransaction.findAll";
+    public static final String FIND_BY_ID = "PaymentTransaction.findById";
+    public static final String FIND_BY_APPYPAY_TX_ID = "PaymentTransaction.findByAppyPayTxId";
+    public static final String PRIMARY_KEY = "id";
 
     @Id
     @Column(name = "id", nullable = false)
@@ -42,9 +63,8 @@ public class PaymentTransaction extends PanacheEntityBase {
     @Column(name = "currency", nullable = false, length = 3)
     private String currency;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    private TransactionStatus status;
+    private String status;
 
     @Column(name = "payment_method", length = 50)
     private String paymentMethod;
@@ -82,16 +102,5 @@ public class PaymentTransaction extends PanacheEntityBase {
     @PreUpdate
     protected void onUpdate() {
         updatedDate = Instant.now();
-    }
-
-    /**
-     * Transaction status enumeration
-     */
-    public enum TransactionStatus {
-        SUCCESS,
-        PENDING,
-        FAILED,
-        CANCELLED,
-        REFUNDED
     }
 }

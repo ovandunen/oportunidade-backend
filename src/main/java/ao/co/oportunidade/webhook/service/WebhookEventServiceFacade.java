@@ -1,8 +1,8 @@
 package ao.co.oportunidade.webhook.service;
 
+import ao.co.oportunidade.webhook.WebhookEvent;
+import ao.co.oportunidade.webhook.WebhookEventService;
 import ao.co.oportunidade.webhook.dto.AppyPayWebhookPayload;
-import ao.co.oportunidade.webhook.entity.WebhookEvent;
-import ao.co.oportunidade.webhook.entity.WebhookEventRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -12,17 +12,19 @@ import org.jboss.logging.Logger;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service for managing webhook events and ensuring idempotency.
+ * Refactored to use DDD domain service.
  */
 @ApplicationScoped
-public class WebhookEventService {
+public class WebhookEventServiceFacade {
 
-    private static final Logger LOG = Logger.getLogger(WebhookEventService.class);
+    private static final Logger LOG = Logger.getLogger(WebhookEventServiceFacade.class);
 
     @Inject
-    WebhookEventRepository webhookEventRepository;
+    WebhookEventService webhookEventService;
 
     @Inject
     ObjectMapper objectMapper;
@@ -34,21 +36,7 @@ public class WebhookEventService {
      * @return true if already processed, false otherwise
      */
     public boolean isAlreadyProcessed(String appypayTransactionId) {
-        Optional<WebhookEvent> existing = webhookEventRepository.findByAppyPayTransactionId(appypayTransactionId);
-        
-        if (existing.isPresent()) {
-            WebhookEvent event = existing.get();
-            WebhookEvent.ProcessingStatus status = event.getProcessingStatus();
-            
-            // Consider PROCESSED and PROCESSING as already handled
-            if (status == WebhookEvent.ProcessingStatus.PROCESSED || 
-                status == WebhookEvent.ProcessingStatus.PROCESSING) {
-                LOG.infof("Webhook already processed or in progress: %s", appypayTransactionId);
-                return true;
-            }
-        }
-        
-        return false;
+        return webhookEventService.isAlreadyProcessed(appypayTransactionId);
     }
 
     /**
@@ -62,17 +50,19 @@ public class WebhookEventService {
         try {
             String payloadJson = objectMapper.writeValueAsString(payload);
             
-            WebhookEvent event = WebhookEvent.builder()
-                    .appypayTransactionId(payload.getId())
-                    .merchantTransactionId(payload.getMerchantTransactionId())
-                    .webhookType(payload.getType())
-                    .processingStatus(WebhookEvent.ProcessingStatus.RECEIVED)
-                    .payload(payloadJson)
-                    .receivedAt(Instant.now())
-                    .retryCount(0)
-                    .build();
+            WebhookEvent event = new WebhookEvent();
+            event.setId(UUID.randomUUID());
+            event.setAppypayTransactionId(payload.getId());
+            event.setMerchantTransactionId(payload.getMerchantTransactionId());
+            event.setWebhookType(payload.getType());
+            event.setProcessingStatus(WebhookEvent.ProcessingStatus.RECEIVED);
+            event.setPayload(payloadJson);
+            event.setReceivedAt(Instant.now());
+            event.setRetryCount(0);
+            event.setCreatedDate(Instant.now());
+            event.setUpdatedDate(Instant.now());
             
-            webhookEventRepository.persist(event);
+            webhookEventService.createDomain(event);
             LOG.infof("Created webhook event: %s for transaction: %s", 
                     event.getId(), payload.getId());
             
@@ -90,9 +80,9 @@ public class WebhookEventService {
      */
     @Transactional
     public void markAsProcessing(String eventId) {
-        webhookEventRepository.findByAppyPayTransactionId(eventId).ifPresent(event -> {
+        webhookEventService.findByAppyPayTransactionId(eventId).ifPresent(event -> {
             event.setProcessingStatus(WebhookEvent.ProcessingStatus.PROCESSING);
-            webhookEventRepository.persist(event);
+            webhookEventService.updateEvent(event);
             LOG.infof("Marked webhook event as processing: %s", eventId);
         });
     }
@@ -104,10 +94,10 @@ public class WebhookEventService {
      */
     @Transactional
     public void markAsProcessed(String eventId) {
-        webhookEventRepository.findByAppyPayTransactionId(eventId).ifPresent(event -> {
+        webhookEventService.findByAppyPayTransactionId(eventId).ifPresent(event -> {
             event.setProcessingStatus(WebhookEvent.ProcessingStatus.PROCESSED);
             event.setProcessedAt(Instant.now());
-            webhookEventRepository.persist(event);
+            webhookEventService.updateEvent(event);
             LOG.infof("Marked webhook event as processed: %s", eventId);
         });
     }
@@ -120,11 +110,11 @@ public class WebhookEventService {
      */
     @Transactional
     public void markAsFailed(String eventId, String errorMessage) {
-        webhookEventRepository.findByAppyPayTransactionId(eventId).ifPresent(event -> {
+        webhookEventService.findByAppyPayTransactionId(eventId).ifPresent(event -> {
             event.setProcessingStatus(WebhookEvent.ProcessingStatus.FAILED);
             event.setErrorMessage(errorMessage);
             event.setRetryCount(event.getRetryCount() + 1);
-            webhookEventRepository.persist(event);
+            webhookEventService.updateEvent(event);
             LOG.errorf("Marked webhook event as failed: %s, error: %s", eventId, errorMessage);
         });
     }
@@ -136,9 +126,9 @@ public class WebhookEventService {
      */
     @Transactional
     public void moveToDeadLetter(String eventId) {
-        webhookEventRepository.findByAppyPayTransactionId(eventId).ifPresent(event -> {
+        webhookEventService.findByAppyPayTransactionId(eventId).ifPresent(event -> {
             event.setProcessingStatus(WebhookEvent.ProcessingStatus.DEAD_LETTER);
-            webhookEventRepository.persist(event);
+            webhookEventService.updateEvent(event);
             LOG.errorf("Moved webhook event to dead letter queue: %s", eventId);
         });
     }
