@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-
+    id 'io.quarkus' version '3.8.6'
 }
 
 group = 'ao.co.oportunidade'
@@ -11,44 +11,25 @@ repositories {
 }
 
 dependencies {
+    implementation platform('io.quarkus.platform:quarkus-bom:3.8.6')
 
-     // Mapstruct
-     implementation 'org.mapstruct:mapstruct:1.6.3'
-     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    implementation 'io.quarkus:quarkus-arc'
+    implementation 'io.quarkus:quarkus-resteasy-reactive-jackson'
+    implementation 'io.quarkus:quarkus-hibernate-orm-panache'
+    implementation 'io.quarkus:quarkus-jdbc-postgresql'
 
-      // Lombok
-      compileOnly 'org.projectlombok:lombok:1.18.34'
-      annotationProcessor 'org.projectlombok:lombok:1.18.34'
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
-      // Binding for Lombok and MapStruct
-      annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
-      // Quarkus BOM (Bill of Materials)
-      implementation platform('io.quarkus:quarkus-bom:3.6.5')
-
-      // Quarkus REST and JSON
-      implementation 'io.quarkus:quarkus-resteasy-reactive-jackson'
-
-      implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
-
-      implementation 'jakarta.inject:jakarta.inject-api:2.0.1'
-
-      // Quarkus Hibernate ORM with Panache
-      implementation 'io.quarkus:quarkus-hibernate-orm-panache'
-
-      // Database (PostgreSQL)
-      implementation 'io.quarkus:quarkus-jdbc-postgresql'
-
-      // Quarkus Arc (CDI)
-      implementation 'io.quarkus:quarkus-arc'
-
-      // Testing
-      testImplementation 'io.quarkus:quarkus-junit5'
-      testImplementation 'org.junit.jupiter:junit-jupiter-api'
-      testImplementation 'org.junit.jupiter:junit-jupiter-engine'
-      testImplementation 'io.rest-assured:rest-assured'
-      testImplementation 'org.testng:testng:7.8.0' // Use the latest stable version
-
+    testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation 'io.quarkus:quarkus-junit5-mockito'
+    testImplementation 'io.rest-assured:rest-assured'
+    testImplementation 'org.assertj:assertj-core:3.26.3'
+    testImplementation 'org.mockito:mockito-core:5.14.2'
 }
 
 java {
@@ -56,14 +37,16 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-tasks.withType(JavaCompile) {
+compileJava {
     options.encoding = 'UTF-8'
     options.compilerArgs << '-parameters'
 }
 
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
 
 test {
-    useTestNG() // Use TestNG for running tests
-    failOnNoDiscoveredTests = false // Optional: Disable failing if no tests are found
     systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+    useJUnitPlatform()
 }
