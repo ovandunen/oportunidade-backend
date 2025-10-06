@@ -1,6 +1,6 @@
 package ao.co.oportunidade.webhook.health;
 
-import ao.co.oportunidade.webhook.entity.WebhookEventRepository;
+import ao.co.oportunidade.webhook.WebhookEventRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.health.HealthCheck;
@@ -10,6 +10,7 @@ import org.eclipse.microprofile.health.Readiness;
 /**
  * Health check for webhook service.
  * Verifies that the webhook processing system is operational.
+ * Refactored to use DDD repository.
  */
 @Readiness
 @ApplicationScoped
