@@ -1,9 +1,9 @@
 package ao.co.oportunidade.webhook.resource;
 
+import ao.co.oportunidade.webhook.WebhookEvent;
 import ao.co.oportunidade.webhook.dto.AppyPayWebhookPayload;
 import ao.co.oportunidade.webhook.dto.WebhookResponse;
-import ao.co.oportunidade.webhook.entity.WebhookEvent;
-import ao.co.oportunidade.webhook.service.WebhookEventService;
+import ao.co.oportunidade.webhook.service.WebhookEventServiceFacade;
 import io.smallrye.reactive.messaging.annotations.Channel;
 import io.smallrye.reactive.messaging.annotations.Emitter;
 import jakarta.inject.Inject;
@@ -16,6 +16,7 @@ import org.jboss.logging.Logger;
 /**
  * REST Resource for AppyPay webhook endpoint.
  * Receives payment notifications from AppyPay and processes them asynchronously.
+ * Refactored to use DDD service facade.
  */
 @Path("/webhooks/appypay")
 @Produces(MediaType.APPLICATION_JSON)
@@ -25,7 +26,7 @@ public class AppyPayWebhookResource {
     private static final Logger LOG = Logger.getLogger(AppyPayWebhookResource.class);
 
     @Inject
-    WebhookEventService webhookEventService;
+    WebhookEventServiceFacade webhookEventService;
 
     @Inject
     @Channel("webhook-events")
