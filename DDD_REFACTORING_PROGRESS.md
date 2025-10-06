@@ -31,7 +31,7 @@ DTO (via DtoMapper)
 
 ## Refactoring Progress
 
-### ✅ Phase 1 - Completed
+### ✅ Completed
 
 1. **Domain Models Created:**
    - `Order` - extends Domain
@@ -55,46 +55,38 @@ DTO (via DtoMapper)
    - `WebhookEventRepository` - extends Repository<WebhookEvent, WebhookEventEntity>
    - All using EntityManager and MapStruct mappers
 
-### ✅ Phase 2 - Completed
+### 🚧 TODO
 
-1. **Created DTOs for API layer:**
+1. **Create DTOs for API layer:**
    - `OrderDTO`
    - `PaymentTransactionDTO`
    - `WebhookEventDTO`
 
-2. **Created DtoMappers (MapStruct):**
+2. **Create DtoMappers (MapStruct):**
    - `OrderDtoMapper` - implements DtoMapper<OrderDTO, Order>
    - `PaymentTransactionDtoMapper` - implements DtoMapper<PaymentTransactionDTO, PaymentTransaction>
    - `WebhookEventDtoMapper` - implements DtoMapper<WebhookEventDTO, WebhookEvent>
 
-3. **Refactored Services:**
+3. **Refactor Services:**
    - `OrderService` - extends DomainService<Order, OrderRepository>
    - `PaymentTransactionService` - extends DomainService<PaymentTransaction, PaymentTransactionRepository>
    - `WebhookEventService` - extends DomainService<WebhookEvent, WebhookEventRepository>
-   - `PaymentService` - refactored to use domain services
-   - `WebhookEventServiceFacade` - facade over domain service
+   - `PaymentService` - orchestration service (may not extend DomainService)
 
-4. **Refactored Resources:**
+4. **Refactor Resources:**
    - `OrderResource` - extends Resource<Order, OrderService>
    - `PaymentTransactionResource` - extends Resource<PaymentTransaction, PaymentTransactionService>
-   - `AppyPayWebhookResource` - updated to use service facade
-   - `WebhookProcessor` - updated to use refactored services
-   - `WebhookHealthCheck` - updated to use new repository
+   - `AppyPayWebhookResource` - refactor to use services and DTOs
 
-5. **Clean up:**
-   - ✅ Removed old entity files from `entity_old/` directory
-   - ✅ Removed old service files
-   - ✅ Renamed refactored service files
+5. **Update Tests:**
+   - Refactor unit tests to work with new structure
+   - Refactor integration tests to use new repositories/services
+   - Update test builders
 
-### 🚧 Phase 3 - In Progress
-
-1. **Update Tests:**
-   - Need to refactor unit tests to work with new structure
-   - Need to refactor integration tests to use new repositories/services
-   - Need to update test builders
-
-2. **Documentation:**
-   - Update documentation to reflect DDD architecture
+6. **Clean up:**
+   - Remove old entity files from `entity_old/` directory
+   - Remove old service files
+   - Update documentation
 
 ## Key Differences from Original Implementation
 
