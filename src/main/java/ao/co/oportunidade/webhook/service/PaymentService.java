@@ -19,7 +19,6 @@ import java.util.UUID;
 
 /**
  * Service for processing payment webhooks and managing payment lifecycle.
- * Refactored to use DDD domain services.
  */
 @ApplicationScoped
 public class PaymentService {
