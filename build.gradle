@@ -13,23 +13,52 @@ repositories {
 dependencies {
     implementation platform('io.quarkus.platform:quarkus-bom:3.8.6')
 
+    // Core Quarkus
     implementation 'io.quarkus:quarkus-arc'
     implementation 'io.quarkus:quarkus-resteasy-reactive-jackson'
     implementation 'io.quarkus:quarkus-hibernate-orm-panache'
     implementation 'io.quarkus:quarkus-jdbc-postgresql'
+    
+    // Reactive Messaging for async processing
+    implementation 'io.quarkus:quarkus-smallrye-reactive-messaging'
+    implementation 'io.quarkus:quarkus-smallrye-reactive-messaging-in-memory'
+    
+    // Health checks and metrics
+    implementation 'io.quarkus:quarkus-smallrye-health'
+    implementation 'io.quarkus:quarkus-micrometer-registry-prometheus'
+    
+    // Validation
+    implementation 'io.quarkus:quarkus-hibernate-validator'
+    
+    // Scheduler for retry logic
+    implementation 'io.quarkus:quarkus-scheduler'
+    
+    // Database migrations
+    implementation 'io.quarkus:quarkus-flyway'
+    
+    // OpenAPI/Swagger
+    implementation 'io.quarkus:quarkus-smallrye-openapi'
 
+    // MapStruct for mapping
     implementation 'org.mapstruct:mapstruct:1.6.3'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 
+    // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 
+    // Testing
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.quarkus:quarkus-junit5-mockito'
     testImplementation 'io.rest-assured:rest-assured'
     testImplementation 'org.assertj:assertj-core:3.26.3'
     testImplementation 'org.mockito:mockito-core:5.14.2'
+    
+    // Testcontainers
+    testImplementation 'org.testcontainers:testcontainers:1.19.8'
+    testImplementation 'org.testcontainers:postgresql:1.19.8'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.8'
 }
 
 java {

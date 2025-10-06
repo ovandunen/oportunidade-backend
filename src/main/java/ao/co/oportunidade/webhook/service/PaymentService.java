@@ -197,7 +197,7 @@ public class PaymentService {
         transaction.setCurrency(payload.getCurrency());
         transaction.setStatus(status);
         transaction.setPaymentMethod(payload.getPaymentMethod());
-        transaction.setTransactionDate(payload.getCreatedDate() != null ? 
+        transaction.setTransactionDate(payload.getCreatedDate() != null ?
                 payload.getCreatedDate() : Instant.now());
         transaction.setCreatedDate(Instant.now());
         transaction.setUpdatedDate(Instant.now());
@@ -210,7 +210,7 @@ public class PaymentService {
         }
 
         paymentTransactionService.createDomain(transaction);
-        LOG.infof("Created payment transaction: %s for order: %s", 
+        LOG.infof("Created payment transaction: %s for order: %s",
                 transaction.getId(), order.getId());
 
         return transaction;
