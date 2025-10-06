@@ -1,7 +1,10 @@
 package ao.co.oportunidade.webhook;
 
 import ao.co.oportunidade.Domain;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.UUID;
