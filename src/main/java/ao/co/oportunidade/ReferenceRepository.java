@@ -15,10 +15,9 @@ public class ReferenceRepository extends Repository<Reference,ReferenceEntity>
 {
 
     @Inject
-    private EntityMapper<Reference,ReferenceEntity> mapper;
+    EntityMapper<Reference,ReferenceEntity> mapper;
 
-    /**
-     */
+
     @Override
     protected Collection<Reference> findDomains() {
 
@@ -29,10 +28,6 @@ public class ReferenceRepository extends Repository<Reference,ReferenceEntity>
     }
 
 
-    /**
-     * @param domain
-     * @return
-     */
     @Override
     protected Optional<Reference> findDomainById(Reference domain) {
 
@@ -41,9 +36,7 @@ public class ReferenceRepository extends Repository<Reference,ReferenceEntity>
         return Optional.ofNullable(mapper.mapToDomain(reference));
     }
 
-    /**
-     * @param reference
-     */
+
     @Override
     protected void createDomain(final Reference reference) {
         getEntityManager().persist(mapper.mapToEntity(reference));
