@@ -18,7 +18,7 @@ public class WebhookProcessor {
     private static final Logger LOG = Logger.getLogger(WebhookProcessor.class);
 
     @Inject
-    PaymentServiceRefactored paymentService;
+    PaymentService paymentService;
 
     @Inject
     WebhookEventServiceFacade webhookEventService;
