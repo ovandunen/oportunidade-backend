@@ -2,6 +2,7 @@ package ao.co.oportunidade;
 
 
 
+import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Setter
 public class Reference extends Domain {
 
+    @Id
     private final UUID id;
     private String entity;
     private String referenceNumber;

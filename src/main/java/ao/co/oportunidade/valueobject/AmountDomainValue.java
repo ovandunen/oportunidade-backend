@@ -1,6 +1,5 @@
 package ao.co.oportunidade.valueobject;
 
-
 import jakarta.persistence.Embeddable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

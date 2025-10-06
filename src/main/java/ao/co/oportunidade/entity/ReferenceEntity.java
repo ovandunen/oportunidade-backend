@@ -2,16 +2,14 @@ package ao.co.oportunidade.entity;
 
 import ao.co.oportunidade.DomainEntity;
 import ao.co.oportunidade.valueobject.AmountDomainValue;
-import jakarta.persistence.Entity;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,7 +19,7 @@ import java.util.UUID;
 @AllArgsConstructor
 
         @Entity
-        @Table(name = "references")
+        @Table(name = "reference")
         @NamedQueries({
                 @NamedQuery(
                         name = ReferenceEntity.FIND_ALL,
@@ -37,12 +35,19 @@ public class ReferenceEntity extends DomainEntity {
     public static final String FIND_ALL = "Reference.findAll";
     public static final String EMPLOYEE_FIND_BY_REFERENCE = "Employee.findByReference";
     public static final String PRIMARY_KEY = "id";
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
     private String entity;
     private String referenceNumber;
     private String currency;
-    private List<AmountDomainValue> amounts;
+
+    @ElementCollection
+    @CollectionTable(name = "reference_amounts", joinColumns = @JoinColumn(name = "reference_id"))
+    protected Collection<AmountDomainValue> amounts;
+
     private Double minAmount;
     private Double maxAmount;
     private Instant startDate;

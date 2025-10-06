@@ -1,9 +1,13 @@
 package ao.co.oportunidade;
 
+import jakarta.enterprise.context.ApplicationScoped;
+
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
+@ApplicationScoped
 public  class ReferenceService extends DomainService<Reference, ReferenceRepository>{
 
     /**
