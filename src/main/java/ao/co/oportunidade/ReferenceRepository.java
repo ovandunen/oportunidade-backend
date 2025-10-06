@@ -41,4 +41,27 @@ public class ReferenceRepository extends Repository<Reference,ReferenceEntity>
     protected void createDomain(final Reference reference) {
         getEntityManager().persist(mapper.mapToEntity(reference));
     }
+
+    /**
+     * Find reference by reference number.
+     *
+     * @param referenceNumber the reference number
+     * @return Optional containing the reference if found
+     */
+    public Optional<Reference> findByReferenceNumber(String referenceNumber) {
+        try {
+            List<ReferenceEntity> results = getEntityManager()
+                    .createQuery("SELECT r FROM ReferenceEntity r WHERE r.referenceNumber = :refNum", ReferenceEntity.class)
+                    .setParameter("refNum", referenceNumber)
+                    .getResultList();
+            
+            if (results.isEmpty()) {
+                return Optional.empty();
+            }
+            
+            return Optional.ofNullable(mapper.mapToDomain(results.get(0)));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
 }
