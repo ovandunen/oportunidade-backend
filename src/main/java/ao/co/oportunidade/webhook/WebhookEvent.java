@@ -1,10 +1,7 @@
 package ao.co.oportunidade.webhook;
 
 import ao.co.oportunidade.Domain;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -17,6 +14,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class WebhookEvent extends Domain {
 
     private UUID id;
@@ -33,7 +31,7 @@ public class WebhookEvent extends Domain {
     private Instant updatedDate;
 
     @Override
-    protected UUID getId() {
+    public UUID getId() {
         return id;
     }
 

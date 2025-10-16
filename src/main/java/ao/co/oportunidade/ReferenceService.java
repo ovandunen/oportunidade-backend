@@ -14,7 +14,7 @@ public  class ReferenceService extends DomainService<Reference, ReferenceReposit
      * @return
      */
     @Override
-    protected Collection<Reference> getAllDomains() {
+    public Collection<Reference> getAllDomains() {
 
       return getRepository().findDomains();
     }
@@ -23,7 +23,7 @@ public  class ReferenceService extends DomainService<Reference, ReferenceReposit
      * @param reference
      */
     @Override
-    protected void createDomain(Reference reference) {
+    public void createDomain(Reference reference) {
         try {
             validateDomain(reference);
         } catch (DomainNotCreatedException e) {

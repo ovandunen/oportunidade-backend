@@ -17,7 +17,7 @@ import java.util.Collection;
 public class ReferenceResource extends Resource<Reference, ReferenceService> {
 
     @Inject
-    private ReferenceDtoMapper mapper;
+    ReferenceDtoMapper mapper;
 
     @GET
     public Collection<ReferenceDTO> getAllReferences() {

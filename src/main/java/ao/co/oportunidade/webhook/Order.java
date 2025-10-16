@@ -33,7 +33,7 @@ public class Order extends Domain {
     private Instant updatedDate;
 
     @Override
-    protected UUID getId() {
+    public UUID getId() {
         return id;
     }
 

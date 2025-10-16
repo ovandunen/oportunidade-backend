@@ -1,7 +1,10 @@
 package ao.co.oportunidade.webhook.service;
 
 import ao.co.oportunidade.ReferenceRepository;
-import ao.co.oportunidade.webhook.*;
+import ao.co.oportunidade.webhook.Order;
+import ao.co.oportunidade.webhook.OrderService;
+import ao.co.oportunidade.webhook.PaymentTransaction;
+import ao.co.oportunidade.webhook.PaymentTransactionService;
 import ao.co.oportunidade.webhook.dto.AppyPayWebhookPayload;
 import ao.co.oportunidade.webhook.dto.CustomerInfo;
 import ao.co.oportunidade.webhook.dto.ReferenceInfo;

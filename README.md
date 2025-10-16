@@ -1,104 +1,62 @@
-# oportunidade-backend
+# recruiting
 
-Quarkus-based backend for Oportunidade platform with AppyPay payment webhook integration.
+This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
-## Features
+If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
 
-- **Payment Reference Management**: Create and manage payment references for MultiCaixa ATMs
-- **AppyPay Webhook Integration**: Receive and process payment notifications asynchronously
-- **Idempotency**: Prevent duplicate webhook processing
-- **Comprehensive Testing**: Unit and integration tests with Testcontainers
-- **Health Monitoring**: Health checks and Prometheus metrics
-- **Database Migrations**: Flyway for version-controlled schema
+## Running the application in dev mode
 
-## Quick Start
+You can run your application in dev mode that enables live coding using:
 
-### Prerequisites
-
-- Java 17+
-- PostgreSQL 12+
-- Gradle 7+
-
-### Setup
-
-1. **Clone the repository**
-```bash
-git clone https://github.com/ovandunen/oportunidade-backend.git
-cd oportunidade-backend
+```shell script
+./mvnw quarkus:dev
 ```
 
-2. **Configure database**
-```bash
-export DB_URL=jdbc:postgresql://localhost:5432/oportunidade
-export DB_USERNAME=postgres
-export DB_PASSWORD=your_password
+> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+
+## Packaging and running the application
+
+The application can be packaged using:
+
+```shell script
+./mvnw package
 ```
 
-3. **Run in development mode**
-```bash
-./gradlew quarkusDev
+It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
+Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+
+The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
+
+If you want to build an _über-jar_, execute the following command:
+
+```shell script
+./mvnw package -Dquarkus.package.jar.type=uber-jar
 ```
 
-The application will be available at `http://localhost:8080`
+The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
 
-### API Endpoints
+## Creating a native executable
 
-- **Webhooks**: `POST /webhooks/appypay` - Receive AppyPay payment notifications
-- **Health**: `GET /webhooks/appypay/health` - Service health check
-- **API Docs**: `http://localhost:8080/q/swagger-ui/` - OpenAPI documentation
-- **Health UI**: `http://localhost:8080/q/health-ui/` - Health check UI
-- **Metrics**: `http://localhost:8080/q/metrics` - Prometheus metrics
+You can create a native executable using:
 
-## Documentation
-
-- **[Implementation Summary](IMPLEMENTATION_SUMMARY.md)** - Overview of what was built
-- **[AppyPay Integration Guide](docs/APPYPAY_WEBHOOK_INTEGRATION.md)** - Detailed integration documentation
-- **[Webhook Examples](docs/WEBHOOK_EXAMPLES.md)** - Example payloads and cURL commands
-- **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Common issues and solutions
-
-## Testing
-
-Run all tests:
-```bash
-./gradlew test
+```shell script
+./mvnw package -Dnative
 ```
 
-Run with coverage:
-```bash
-./gradlew test jacocoTestReport
+Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
+
+```shell script
+./mvnw package -Dnative -Dquarkus.native.container-build=true
 ```
 
-## Tech Stack
+You can then execute your native executable with: `./target/recruiting-1.0.0-SNAPSHOT-runner`
 
-- **Framework**: Quarkus 3.8.6
-- **Language**: Java 17
-- **Database**: PostgreSQL with Hibernate Panache
-- **Async**: SmallRye Reactive Messaging
-- **Testing**: JUnit 5, RestAssured, Testcontainers
-- **Build**: Gradle
-- **Utilities**: Lombok, MapStruct
+If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
 
-## Project Structure
+## Provided Code
 
-```
-src/
-├── main/
-│   ├── java/ao/co/oportunidade/
-│   │   ├── webhook/          # AppyPay webhook integration
-│   │   │   ├── dto/          # Data transfer objects
-│   │   │   ├── entity/       # Domain entities and repositories
-│   │   │   ├── service/      # Business logic
-│   │   │   ├── resource/     # REST endpoints
-│   │   │   └── health/       # Health checks
-│   │   └── ...               # Existing code
-│   └── resources/
-│       ├── application.properties
-│       └── db/migration/     # Flyway migrations
-└── test/
-    ├── java/...              # Unit and integration tests
-    └── resources/
-```
+### REST
 
-## License
+Easily start your REST Web Services
 
-[Your License]
+[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)

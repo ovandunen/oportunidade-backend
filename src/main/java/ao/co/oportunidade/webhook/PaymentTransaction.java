@@ -35,7 +35,7 @@ public class PaymentTransaction extends Domain {
     private String errorMessage;
 
     @Override
-    protected UUID getId() {
+    public UUID getId() {
         return id;
     }
 
