@@ -14,6 +14,7 @@ public  class ReferenceService extends DomainService<Reference, ReferenceReposit
      * @return
      */
     @Override
+    public Collection<Reference> getAllDomains() {
 
       return getRepository().findDomains();
     }
