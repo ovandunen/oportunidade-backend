@@ -2,10 +2,7 @@ package ao.co.oportunidade.webhook.entity;
 
 import ao.co.oportunidade.DomainEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -39,6 +36,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class OrderEntity extends DomainEntity {
 
     public static final String FIND_ALL = "Order.findAll";

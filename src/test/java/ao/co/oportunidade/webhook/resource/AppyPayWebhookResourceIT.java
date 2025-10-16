@@ -1,15 +1,9 @@
 package ao.co.oportunidade.webhook.resource;
 
+import ao.co.oportunidade.webhook.*;
 import ao.co.oportunidade.webhook.dto.AppyPayWebhookPayload;
 import ao.co.oportunidade.webhook.dto.CustomerInfo;
 import ao.co.oportunidade.webhook.dto.ReferenceInfo;
-import ao.co.oportunidade.webhook.dto.WebhookResponse;
-import ao.co.oportunidade.webhook.entity.Order;
-import ao.co.oportunidade.webhook.entity.OrderRepository;
-import ao.co.oportunidade.webhook.entity.PaymentTransaction;
-import ao.co.oportunidade.webhook.entity.PaymentTransactionRepository;
-import ao.co.oportunidade.webhook.entity.WebhookEvent;
-import ao.co.oportunidade.webhook.entity.WebhookEventRepository;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import jakarta.inject.Inject;
@@ -91,7 +85,7 @@ class AppyPayWebhookResourceIT {
                 .stream().toList();
         
         assertThat(events).isNotEmpty();
-        WebhookEvent event = events.get(0);
+        WebhookEvent event = events.getFirst();
         assertThat(event.getAppypayTransactionId()).isEqualTo("test-tx-123");
         assertThat(event.getMerchantTransactionId()).isEqualTo("ORDER-TEST-123");
         assertThat(event.getWebhookType()).isEqualTo("Charge");
@@ -120,7 +114,7 @@ class AppyPayWebhookResourceIT {
                 .stream().toList();
         
         assertThat(orders).isNotEmpty();
-        Order order = orders.get(0);
+        final Order order = orders.getFirst();
         assertThat(order.getMerchantTransactionId()).isEqualTo("ORDER-TEST-123");
         assertThat(order.getAmount()).isEqualByComparingTo(new BigDecimal("1500.00"));
         assertThat(order.getCurrency()).isEqualTo("AOA");
@@ -239,11 +233,11 @@ class AppyPayWebhookResourceIT {
         Thread.sleep(2000);
 
         // Then
-        List<Order> orders = orderRepository.findByMerchantTransactionId("ORDER-FAILED-789")
+        final List<Order> orders = orderRepository.findByMerchantTransactionId("ORDER-FAILED-789")
                 .stream().toList();
         
         assertThat(orders).isNotEmpty();
-        Order order = orders.get(0);
+        final Order order = orders.getFirst();
         assertThat(order.getStatus()).isEqualTo(Order.OrderStatus.FAILED);
 
         List<PaymentTransaction> transactions = paymentTransactionRepository
