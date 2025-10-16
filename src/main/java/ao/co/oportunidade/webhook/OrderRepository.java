@@ -44,7 +44,7 @@ public class OrderRepository extends Repository<Order, OrderEntity> {
     }
 
     @Override
-    protected void createDomain(Order domain) {
+    public void createDomain(Order domain) {
         getEntityManager().persist(mapper.mapToEntity(domain));
     }
 
