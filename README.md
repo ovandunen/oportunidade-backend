@@ -1,3 +1,4 @@
+Backend for communication with appypay
 # recruiting
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
