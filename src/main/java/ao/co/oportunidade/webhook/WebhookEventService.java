@@ -1,24 +1,33 @@
 package ao.co.oportunidade.webhook;
 
 import ao.co.oportunidade.DomainService;
+import ao.co.oportunidade.webhook.dto.AppyPayWebhookPayload;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * Service for WebhookEvent domain following DDD principles.
- */
 @ApplicationScoped
 public class WebhookEventService extends DomainService<WebhookEvent, WebhookEventRepository> {
 
+    private final ObjectMapper objectMapper;
+
+    @Inject
+    public WebhookEventService(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
     @Override
-    protected Collection<WebhookEvent> getAllDomains() {
+    public Collection<WebhookEvent> getAllDomains() {
         return getRepository().findDomains();
     }
 
     @Override
-    protected void createDomain(WebhookEvent event) {
+    public void createDomain(WebhookEvent event) {
         try {
             validateDomain(event);
         } catch (ao.co.oportunidade.DomainNotCreatedException e) {
@@ -56,7 +65,7 @@ public class WebhookEventService extends DomainService<WebhookEvent, WebhookEven
     public boolean isAlreadyProcessed(String appypayTransactionId) {
         return findByAppyPayTransactionId(appypayTransactionId)
                 .map(event -> event.getProcessingStatus() == WebhookEvent.ProcessingStatus.PROCESSED ||
-                              event.getProcessingStatus() == WebhookEvent.ProcessingStatus.PROCESSING)
+                        event.getProcessingStatus() == WebhookEvent.ProcessingStatus.PROCESSING)
                 .orElse(false);
     }
 
@@ -67,5 +76,26 @@ public class WebhookEventService extends DomainService<WebhookEvent, WebhookEven
      */
     public void updateEvent(WebhookEvent event) {
         getRepository().createDomain(event); // Will persist/merge based on state
+    }
+
+    public WebhookEvent createWebhookEvent(AppyPayWebhookPayload payload) {
+
+        final WebhookEvent event = new WebhookEvent();
+        event.setAppypayTransactionId(payload.getId());
+        event.setMerchantTransactionId(payload.getMerchantTransactionId());
+        event.setWebhookType(payload.getType());
+        event.setProcessingStatus(WebhookEvent.ProcessingStatus.RECEIVED);
+        event.setRetryCount(0);
+        event.setReceivedAt(Instant.now());
+
+        // Store the full payload as JSON string
+        try {
+            event.setPayload(objectMapper.writeValueAsString(payload));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize payload", e);
+        }
+
+        getRepository().createDomain(event);
+        return event;
     }
 }

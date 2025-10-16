@@ -14,12 +14,12 @@ import java.util.UUID;
 public class PaymentTransactionService extends DomainService<PaymentTransaction, PaymentTransactionRepository> {
 
     @Override
-    protected Collection<PaymentTransaction> getAllDomains() {
+    public Collection<PaymentTransaction> getAllDomains() {
         return getRepository().findDomains();
     }
 
     @Override
-    protected void createDomain(PaymentTransaction transaction) {
+    public void createDomain(PaymentTransaction transaction) {
         try {
             validateDomain(transaction);
         } catch (ao.co.oportunidade.DomainNotCreatedException e) {

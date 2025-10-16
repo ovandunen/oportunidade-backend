@@ -4,6 +4,7 @@ import ao.co.oportunidade.DomainService;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.Collection;
+import java.util.Optional;
 
 /**
  * Service for Order domain following DDD principles.
@@ -12,12 +13,12 @@ import java.util.Collection;
 public class OrderService extends DomainService<Order, OrderRepository> {
 
     @Override
-    protected Collection<Order> getAllDomains() {
+    public Collection<Order> getAllDomains() {
         return getRepository().findDomains();
     }
 
     @Override
-    protected void createDomain(Order order) {
+    public void createDomain(Order order) {
         try {
             validateDomain(order);
         } catch (ao.co.oportunidade.DomainNotCreatedException e) {
@@ -43,7 +44,8 @@ public class OrderService extends DomainService<Order, OrderRepository> {
      */
     public void updateOrder(Order order) {
         getRepository().getEntityManager().merge(
-            getRepository().findById(order.getId())
+                Optional.ofNullable(
+            getRepository().findById(order.getId().getLeastSignificantBits()))
                 .orElseThrow(() -> new RuntimeException("Order not found"))
         );
         getRepository().createDomain(order); // Will persist/merge based on state
