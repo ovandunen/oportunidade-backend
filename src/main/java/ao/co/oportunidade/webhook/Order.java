@@ -1,10 +1,7 @@
 package ao.co.oportunidade.webhook;
 
 import ao.co.oportunidade.Domain;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -18,6 +15,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Order extends Domain {
 
     private UUID id;

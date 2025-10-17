@@ -1,14 +1,126 @@
 quarkus:
+  # Micrometer Configuration
+  micrometer:
+    enabled: true
+    binder:
+      # JVM Metriken
+      jvm: true
+      # System Metriken
+      system: true
+      # HTTP Metriken
+      http-server:
+        enabled: true
+      # Vertx Metriken
+      vertx:
+        enabled: true
+
+    export:
+      prometheus:
+        enabled: true
+        path: /q/metrics  # Metrics endpoint
+        default-registry: true
+
+    binder-enabled-default: true
+
+
+
   datasource:
-    db-kind: h2
-    username: sa
-    password: ""
+    db-kind: postgresql
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     jdbc:
-      url: jdbc:h2:mem:testdb
-  
-  quarkus:
-    hibernate-orm:
-      schema-management:
-                         drop-and-create
+      url: ${DB_URL:jdbc:postgresql://localhost:5432/oportunidade}
+
+  # Hibernate Configuration
+  hibernate:
+    orm:
+      schema-generation:
+        scripts:
+          generation: drop-and-create
+          generation-target: database
+
     log:
-      sql: true
+      sql: false
+    sql-load-script: no-file
+
+  # Flyway Configuration
+  flyway:
+    migrate-at-start: true
+    baseline-on-migrate: true
+    baseline-version: 0
+
+  # HTTP Configuration
+  http:
+    port: 8080
+    cors:
+      enabled: true
+      origins: "*"
+
+
+  # Logging Configuration
+  logging:
+    level:
+      root: INFO
+      ao.co.oportunidade.webhook: DEBUG
+    pattern:
+      console: "%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{3.}] (%t) %s%e%n"
+
+  # Health Check Configuration
+  smallrye-health:
+    ui:
+      enable: true
+
+  # OpenAPI / Swagger UI Configuration
+  swagger-ui:
+    enable: true
+    always-include: true
+
+# Reactive Messaging Configuration for Webhook Processing
+mp:
+  messaging:
+    outgoing:
+      webhook-events:
+        connector: smallrye-in-memory
+        address: webhook-events
+    incoming:
+      webhook-events:
+        connector: smallrye-in-memory
+        address: webhook-events
+
+# Webhook Configuration
+webhook:
+  max-retry-count: ${WEBHOOK_MAX_RETRY:3}
+  retry-delay-seconds: ${WEBHOOK_RETRY_DELAY:60}
+  secret: ${WEBHOOK_SECRET:}
+
+---
+# Test Profile Configuration
+"%test":
+  quarkus:
+    datasource:
+      db-kind: h2
+      username: sa
+      password: ""
+      jdbc:
+        url: jdbc:h2:mem:testdb
+
+    jakarta:
+      persistence:
+        schema-generation:
+          database:
+            action: drop-and-create
+      log:
+        sql: true
+
+    flyway:
+      migrate-at-start: false
+
+  mp:
+    messaging:
+      incoming:
+        webhook-events:
+          connector: smallrye-in-memory
+      outgoing:
+        webhook-events:
+          connector: smallrye-in-memory
+

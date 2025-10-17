@@ -54,11 +54,11 @@ public class ReferenceRepository extends Repository<Reference,ReferenceEntity>
                     .createQuery("SELECT r FROM ReferenceEntity r WHERE r.referenceNumber = :refNum", ReferenceEntity.class)
                     .setParameter("refNum", referenceNumber)
                     .getResultList();
-            
+
             if (results.isEmpty()) {
                 return Optional.empty();
             }
-            
+
             return Optional.ofNullable(mapper.mapToDomain(results.get(0)));
         } catch (Exception e) {
             return Optional.empty();

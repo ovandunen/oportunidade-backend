@@ -19,7 +19,7 @@ import java.util.UUID;
 @AllArgsConstructor
 
         @Entity
-        @Table(name = "reference")
+        @Table(name = "references")
         @NamedQueries({
                 @NamedQuery(
                         name = ReferenceEntity.FIND_ALL,
@@ -46,7 +46,7 @@ public class ReferenceEntity extends DomainEntity {
 
     @ElementCollection
     @CollectionTable(name = "reference_amounts", joinColumns = @JoinColumn(name = "reference_id"))
-    protected Collection<AmountDomainValue> amounts;
+    private Collection<AmountDomainValue> amounts;
 
     private Double minAmount;
     private Double maxAmount;
