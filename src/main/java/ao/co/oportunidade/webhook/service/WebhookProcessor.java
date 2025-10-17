@@ -5,6 +5,7 @@ import io.smallrye.reactive.messaging.annotations.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
+import org.eclipse.microprofile.reactive.messaging.Outgoing;
 import org.jboss.logging.Logger;
 
 /**
@@ -29,10 +30,10 @@ public class WebhookProcessor {
      *
      * @param payload the webhook payload to process
      */
-    @Incoming("webhook-events")
+    @Incoming("webhook-events-in")
     @Blocking
     public void processWebhook(AppyPayWebhookPayload payload) {
-        String transactionId = payload.getId();
+        final String transactionId = payload.getId();
         LOG.infof("Starting async processing of webhook: %s", transactionId);
 
         try {

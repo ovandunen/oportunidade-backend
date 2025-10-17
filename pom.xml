@@ -125,6 +125,9 @@
         <groupId>${quarkus.platform.group-id}</groupId>
         <artifactId>quarkus-maven-plugin</artifactId>
         <version>${quarkus.platform.version}</version>
+          <configuration>
+              <jvmArgs>--add-opens java.base/java.lang=ALL-UNNAMED</jvmArgs>
+          </configuration>
         <extensions>true</extensions>
         <executions>
           <execution>
@@ -168,6 +171,7 @@
           <systemPropertyVariables>
             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
           </systemPropertyVariables>
+            <argLine>--add-opens java.base/java.lang=ALL-UNNAMED</argLine>
         </configuration>
       </plugin>
       <plugin>
@@ -188,15 +192,6 @@
           </systemPropertyVariables>
         </configuration>
       </plugin>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-                <source>21</source>
-                <target>21</target>
-                <compilerArgs>--enable-preview</compilerArgs>
-            </configuration>
-        </plugin>
     </plugins>
   </build>
   <profiles>
