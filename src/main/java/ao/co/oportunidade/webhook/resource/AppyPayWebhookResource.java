@@ -29,7 +29,7 @@ public class AppyPayWebhookResource {
     WebhookEventServiceFacade webhookEventService;
 
     @Inject
-    @Channel("webhook-events")
+    @Channel("webhook-events-out")
     Emitter<AppyPayWebhookPayload> webhookEmitter;
 
     /**

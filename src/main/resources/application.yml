@@ -75,18 +75,6 @@ quarkus:
     enable: true
     always-include: true
 
-# Reactive Messaging Configuration for Webhook Processing
-mp:
-  messaging:
-    outgoing:
-      webhook-events:
-        connector: smallrye-in-memory
-        address: webhook-events
-    incoming:
-      webhook-events:
-        connector: smallrye-in-memory
-        address: webhook-events
-
 # Webhook Configuration
 webhook:
   max-retry-count: ${WEBHOOK_MAX_RETRY:3}
@@ -114,13 +102,13 @@ webhook:
 
     flyway:
       migrate-at-start: false
-
+# Reactive Messaging Configuration for Webhook Processing
   mp:
     messaging:
       incoming:
-        webhook-events:
+        webhook-events-in:
           connector: smallrye-in-memory
       outgoing:
-        webhook-events:
+        webhook-events-out:
           connector: smallrye-in-memory
 
