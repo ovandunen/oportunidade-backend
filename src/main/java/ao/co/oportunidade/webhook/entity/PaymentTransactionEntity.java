@@ -20,7 +20,7 @@ import java.util.UUID;
     @Index(name = "idx_payment_tx_appypay_id", columnList = "appypayTransactionId"),
     @Index(name = "idx_payment_tx_order_id", columnList = "order_id"),
     @Index(name = "idx_payment_tx_status", columnList = "status"),
-    @Index(name = "idx_payment_tx_created", columnList = "transactionDate")
+    @Index(name = "idx_payment_tx_created", columnList = "transaction_date")
 })
 @NamedQueries({
     @NamedQuery(

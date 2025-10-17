@@ -18,7 +18,7 @@ import java.util.UUID;
 @Table(name = "webhook_events", indexes = {
     @Index(name = "idx_webhook_appypay_tx_id", columnList = "appypayTransactionId", unique = true),
     @Index(name = "idx_webhook_status", columnList = "processingStatus"),
-    @Index(name = "idx_webhook_received", columnList = "receivedAt")
+    @Index(name = "idx_webhook_received", columnList = "received_at")
 })
 @NamedQueries({
     @NamedQuery(
