@@ -12,7 +12,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-    <quarkus.platform.version>3.28.3</quarkus.platform.version>
+    <quarkus.platform.version>3.28.4</quarkus.platform.version>
     <skipITs>true</skipITs>
     <surefire-plugin.version>3.5.4</surefire-plugin.version>
   </properties>
@@ -77,20 +77,20 @@
       <groupId>org.apache.camel.quarkus</groupId>
       <artifactId>camel-quarkus-smallrye-reactive-messaging</artifactId>
     </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-messaging-amqp</artifactId>
-    </dependency>
+      <dependency>
+          <groupId>io.smallrye.reactive</groupId>
+          <artifactId>smallrye-reactive-messaging-in-memory</artifactId>
+      </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-junit5</artifactId>
       <scope>test</scope>
     </dependency>
-      <dependency>
-          <groupId>io.rest-assured</groupId>
-          <artifactId>rest-assured</artifactId>
-          <scope>test</scope>
-      </dependency>
+    <dependency>
+      <groupId>io.rest-assured</groupId>
+      <artifactId>rest-assured</artifactId>
+      <scope>test</scope>
+    </dependency>
       <dependency>
           <groupId>org.assertj</groupId>
           <artifactId>assertj-core</artifactId>
@@ -100,24 +100,21 @@
       <dependency>
           <groupId>org.mockito</groupId>
           <artifactId>mockito-core</artifactId>
-      <version>5.7.0</version>
+          <scope>test</scope>
+      </dependency>
+      <dependency>
+          <groupId>io.quarkus</groupId>
+          <artifactId>quarkus-junit5-mockito</artifactId>
           <scope>test</scope>
       </dependency>
     <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-junit5-mockito</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
     </dependency>
       <dependency>
           <groupId>org.junit.jupiter</groupId>
-          <artifactId>junit-jupiter-api</artifactId>
-          <version>5.9.2</version>
-          <scope>test</scope>
-      </dependency>
-      <dependency>
-          <groupId>org.junit.jupiter</groupId>
           <artifactId>junit-jupiter-engine</artifactId>
-          <version>5.9.2</version>
           <scope>test</scope>
       </dependency>
 

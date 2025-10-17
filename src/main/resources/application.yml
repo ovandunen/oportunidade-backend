@@ -1,5 +1,29 @@
-# Database Configuration
 quarkus:
+  # Micrometer Configuration
+  micrometer:
+    enabled: true
+    binder:
+      # JVM Metriken
+      jvm: true
+      # System Metriken
+      system: true
+      # HTTP Metriken
+      http-server:
+        enabled: true
+      # Vertx Metriken
+      vertx:
+        enabled: true
+
+    export:
+      prometheus:
+        enabled: true
+        path: /q/metrics  # Metrics endpoint
+        default-registry: true
+
+    binder-enabled-default: true
+
+
+
   datasource:
     db-kind: postgresql
     username: ${DB_USERNAME:postgres}
@@ -45,13 +69,6 @@ quarkus:
   smallrye-health:
     ui:
       enable: true
-
-  # Metrics Configuration
-  micrometer:
-    enabled: true
-    export:
-      prometheus:
-        enabled: true
 
   # OpenAPI / Swagger UI Configuration
   swagger-ui:
@@ -106,3 +123,4 @@ webhook:
       outgoing:
         webhook-events:
           connector: smallrye-in-memory
+
