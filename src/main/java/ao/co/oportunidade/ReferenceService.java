@@ -3,6 +3,7 @@ package ao.co.oportunidade;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,5 +34,8 @@ public  class ReferenceService extends DomainService<Reference, ReferenceReposit
         getRepository().createDomain(reference);
     }
 
+    public Reference getReferenceByNumber(String referenceNumber) {
+        return  getRepository().findByReferenceNumber(referenceNumber).orElse(null);
+    }
 }
 

@@ -56,7 +56,7 @@ public class OrderRepository extends Repository<Order, OrderEntity> {
      */
     public Optional<Order> findByMerchantTransactionId(String merchantTransactionId) {
         try {
-            List<OrderEntity> results = getEntityManager()
+            final List<OrderEntity> results = getEntityManager()
                     .createNamedQuery(OrderEntity.FIND_BY_MERCHANT_TX_ID, OrderEntity.class)
                     .setParameter("merchantTxId", merchantTransactionId)
                     .getResultList();
@@ -65,7 +65,7 @@ public class OrderRepository extends Repository<Order, OrderEntity> {
                 return Optional.empty();
             }
             
-            return Optional.ofNullable(mapper.mapToDomain(results.get(0)));
+            return Optional.ofNullable(mapper.mapToDomain(results.getFirst()));
         } catch (Exception e) {
             return Optional.empty();
         }
