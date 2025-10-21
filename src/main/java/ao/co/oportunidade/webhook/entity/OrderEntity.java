@@ -90,6 +90,13 @@ public class OrderEntity extends DomainEntity {
         updatedDate = now;
     }
 
+    @Override
+    public String toString() {
+        return "OrderEntity{" +
+                "id=" + id +
+                '}';
+    }
+
     @PreUpdate
     protected void onUpdate() {
         updatedDate = Instant.now();

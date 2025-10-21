@@ -5,7 +5,6 @@ import io.smallrye.reactive.messaging.annotations.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
-import org.eclipse.microprofile.reactive.messaging.Outgoing;
 import org.jboss.logging.Logger;
 
 /**
@@ -19,7 +18,7 @@ public class WebhookProcessor {
     private static final Logger LOG = Logger.getLogger(WebhookProcessor.class);
 
     @Inject
-    PaymentService paymentService;
+    ProcessPaymentService processPaymentService;
 
     @Inject
     WebhookEventServiceFacade webhookEventService;
@@ -41,7 +40,7 @@ public class WebhookProcessor {
             webhookEventService.markAsProcessing(transactionId);
 
             // Process the payment
-            paymentService.processWebhook(payload);
+            processPaymentService.processWebhook(payload);
 
             // Mark as processed
             webhookEventService.markAsProcessed(transactionId);

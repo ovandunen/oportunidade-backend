@@ -13,9 +13,12 @@ import ao.co.oportunidade.webhook.entity.*;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -29,10 +32,14 @@ import static org.mockito.Mockito.*;
  * Unit tests for PaymentService.
  */
 @QuarkusTest
-class PaymentServiceTest {
+class ProcessPaymentServiceTest {
+
+    private final static UUID ORDER_ID = UUID.randomUUID();
+    public static final String BASIC_REFERENCE_NO = "123456789";
+    public static final int WANTED_NUMBER_OF_INVOCATIONS = 1;
 
     @Inject
-    PaymentService paymentService;
+    ProcessPaymentService processPaymentService;
 
     @InjectMock
     OrderRepository orderRepository;
@@ -49,7 +56,10 @@ class PaymentServiceTest {
 
     @BeforeEach
     void setUp() {
-        ReferenceInfo refInfo = ReferenceInfo.builder()
+
+
+        // Reset all mocks after each test
+        final ReferenceInfo refInfo = ReferenceInfo.builder()
                 .referenceNumber("123456789")
                 .entity("00123")
                 .dueDate(Instant.now().plusSeconds(86400))
@@ -103,24 +113,40 @@ class PaymentServiceTest {
                 .updatedDate(Instant.now())
                 .build();
 
-        // Setup common mocks
-        when(orderRepository.findByMerchantTransactionId(anyString()))
-                .thenReturn(Optional.empty());
-        when(referenceRepository.findByReferenceNumber(anyString()))
-                .thenReturn(Optional.empty());
+
+        final OrderEntity orderEntity = new OrderEntity();
+        orderEntity.setId(ORDER_ID);
+        orderEntity.setAmount(new BigDecimal("1500.00"));
+        orderEntity.setMerchantTransactionId("ORDER-12345");
+        orderEntity.setStatus("Pending");
+
+
+        verify(orderEntity, times(WANTED_NUMBER_OF_INVOCATIONS)).persist();
+
+        final Reference reference = new Reference();
+        reference.setReferenceNumber(BASIC_REFERENCE_NO);
+        when(referenceRepository.findByReferenceNumber(BASIC_REFERENCE_NO))
+                .thenReturn(Optional.of(reference));
+    }
+
+
+    @AfterEach
+    void tearDown() {
+        // Reset all mocks after each test
+        reset(orderRepository, paymentTransactionRepository, referenceRepository);
     }
 
     @Test
     void testProcessWebhook_Success_CreatesOrderAndTransaction() {
         // When
-        paymentService.processWebhook(successPayload);
+        processPaymentService.processWebhook(successPayload);
 
         // Then - verify order was created/updated
-        ArgumentCaptor<OrderEntity> orderCaptor = ArgumentCaptor.forClass(OrderEntity.class);
+        final ArgumentCaptor<OrderEntity> orderCaptor = ArgumentCaptor.forClass(OrderEntity.class);
         verify(orderRepository, atLeastOnce()).persist(orderCaptor.capture());
         
-        OrderEntity capturedOrder = orderCaptor.getValue();
-        assertThat(capturedOrder.getMerchantTransactionId()).isEqualTo("ORDER-12345");
+        final OrderEntity capturedOrder = orderCaptor.getValue();
+        assertThat(capturedOrder.getMerchantTransactionId()               ).isEqualTo("ORDER-12345");
         assertThat(capturedOrder.getAmount()).isEqualByComparingTo(new BigDecimal("1500.00"));
         assertThat(capturedOrder.getCurrency()).isEqualTo("AOA");
         assertThat(capturedOrder.getStatus().toLowerCase()).isEqualTo(Order.OrderStatus.PAID.toString().toLowerCase());
@@ -140,37 +166,37 @@ class PaymentServiceTest {
     @Test
     void testProcessWebhook_Pending_CreatesOrderWithPendingStatus() {
         // When
-        paymentService.processWebhook(pendingPayload);
+        processPaymentService.processWebhook(pendingPayload);
 
         // Then
-        ArgumentCaptor<OrderEntity> orderCaptor = ArgumentCaptor.forClass(OrderEntity.class);
+        final ArgumentCaptor<OrderEntity> orderCaptor = ArgumentCaptor.forClass(OrderEntity.class);
         verify(orderRepository, atLeastOnce()).persist(orderCaptor.capture());
         
-        OrderEntity capturedOrder = orderCaptor.getValue();
+        final OrderEntity capturedOrder = orderCaptor.getValue();
         assertThat(capturedOrder.getStatus()).isEqualTo(Order.OrderStatus.PENDING.toString().toLowerCase());
 
         // Then - verify transaction was created with pending status
-        ArgumentCaptor<PaymentTransactionEntity> txCaptor = ArgumentCaptor.forClass(PaymentTransactionEntity.class);
+        final ArgumentCaptor<PaymentTransactionEntity> txCaptor = ArgumentCaptor.forClass(PaymentTransactionEntity.class);
         verify(paymentTransactionRepository).persist(txCaptor.capture());
         
-        PaymentTransactionEntity capturedTx = txCaptor.getValue();
+        final PaymentTransactionEntity capturedTx = txCaptor.getValue();
         assertThat(capturedTx.getStatus().toLowerCase()).isEqualTo(PaymentTransaction.TransactionStatus.PENDING.toString().toLowerCase());
     }
 
     @Test
     void testProcessWebhook_Failed_CreatesOrderWithFailedStatus() {
         // When
-        paymentService.processWebhook(failedPayload);
+        processPaymentService.processWebhook(failedPayload);
 
         // Then
-        ArgumentCaptor<OrderEntity> orderCaptor = ArgumentCaptor.forClass(OrderEntity.class);
+        final ArgumentCaptor<OrderEntity> orderCaptor = ArgumentCaptor.forClass(OrderEntity.class);
         verify(orderRepository, atLeastOnce()).persist(orderCaptor.capture());
         
-        OrderEntity capturedOrder = orderCaptor.getValue();
+        final OrderEntity capturedOrder = orderCaptor.getValue();
         assertThat(capturedOrder.getStatus().toLowerCase()).isEqualTo(Order.OrderStatus.FAILED.toString().toLowerCase());
 
         // Then - verify transaction was created with failed status
-        ArgumentCaptor<PaymentTransactionEntity> txCaptor = ArgumentCaptor.forClass(PaymentTransactionEntity.class);
+        final ArgumentCaptor<PaymentTransactionEntity> txCaptor = ArgumentCaptor.forClass(PaymentTransactionEntity.class);
         verify(paymentTransactionRepository).persist(txCaptor.capture());
         
         final PaymentTransactionEntity capturedTx = txCaptor.getValue();
@@ -181,7 +207,7 @@ class PaymentServiceTest {
     void testProcessWebhook_UpdatesExistingOrder() {
         // Given - existing order
         final Order existingOrder = Order.builder()
-                .id(UUID.randomUUID())
+                .id(ORDER_ID)
                 .merchantTransactionId("ORDER-12345")
                 .amount(new BigDecimal("1500.00"))
                 .currency("AOA")
@@ -194,7 +220,7 @@ class PaymentServiceTest {
                 .thenReturn(Optional.of(existingOrder));
 
         // When
-        paymentService.processWebhook(successPayload);
+        processPaymentService.processWebhook(successPayload);
 
         // Then - verify order was updated to PAID
         assertThat(existingOrder.getStatus())
@@ -205,27 +231,27 @@ class PaymentServiceTest {
     @Test
     void testProcessWebhook_LinksToExistingReference() {
         // Given - existing reference
-        Reference existingRef = new Reference();
+        final Reference existingRef = new Reference();
         existingRef.setReferenceNumber("123456789");
         
         when(referenceRepository.findByReferenceNumber("123456789"))
                 .thenReturn(Optional.of(existingRef));
 
         // When
-        paymentService.processWebhook(successPayload);
+        processPaymentService.processWebhook(successPayload);
 
         // Then - verify order was linked to reference
-        ArgumentCaptor<OrderEntity> orderCaptor = ArgumentCaptor.forClass(OrderEntity.class);
+        final ArgumentCaptor<OrderEntity> orderCaptor = ArgumentCaptor.forClass(OrderEntity.class);
         verify(orderRepository, atLeastOnce()).persist(orderCaptor.capture());
         
-        OrderEntity capturedOrder = orderCaptor.getValue();
+        final OrderEntity capturedOrder = orderCaptor.getValue();
         assertThat(capturedOrder.getReferenceId()).isEqualTo(existingRef.getId());
     }
 
     @Test
     void testProcessWebhook_Cancelled() {
         // Given - existing order
-        Order existingOrder = Order.builder()
+        final Order existingOrder = Order.builder()
                 .id(UUID.randomUUID())
                 .merchantTransactionId("ORDER-12345")
                 .amount(new BigDecimal("1500.00"))
@@ -238,7 +264,7 @@ class PaymentServiceTest {
         when(orderRepository.findByMerchantTransactionId("ORDER-12345"))
                 .thenReturn(Optional.of(existingOrder));
 
-        AppyPayWebhookPayload cancelledPayload = AppyPayWebhookPayload.builder()
+        final AppyPayWebhookPayload cancelledPayload = AppyPayWebhookPayload.builder()
                 .id("tx-cancelled-123")
                 .merchantTransactionId("ORDER-12345")
                 .type("Charge")
@@ -251,15 +277,15 @@ class PaymentServiceTest {
                 .build();
 
         // When
-        paymentService.processWebhook(cancelledPayload);
+        processPaymentService.processWebhook(cancelledPayload);
 
         // Then
         assertThat(existingOrder.getStatus()).isEqualTo(Order.OrderStatus.CANCELLED);
         
-        ArgumentCaptor<PaymentTransactionEntity> txCaptor = ArgumentCaptor.forClass(PaymentTransactionEntity.class);
+        final ArgumentCaptor<PaymentTransactionEntity> txCaptor = ArgumentCaptor.forClass(PaymentTransactionEntity.class);
         verify(paymentTransactionRepository).persist(txCaptor.capture());
         
-        PaymentTransactionEntity capturedTx = txCaptor.getValue();
+        final PaymentTransactionEntity capturedTx = txCaptor.getValue();
         assertThat(capturedTx.getStatus().toLowerCase()).
                 isEqualTo(PaymentTransaction.TransactionStatus.CANCELLED.toString().toLowerCase());
     }
