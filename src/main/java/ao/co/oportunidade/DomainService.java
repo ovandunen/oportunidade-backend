@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 
-@Getter(value = AccessLevel.PROTECTED)
+@Getter
 public abstract class DomainService <D extends Domain, R extends Repository<D,?>> {
 
     @Inject

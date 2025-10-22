@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for PaymentService.
  */
-@QuarkusTest
+//@QuarkusTest
 class ProcessPaymentServiceTest {
 
     private final static UUID ORDER_ID = UUID.randomUUID();
