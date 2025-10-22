@@ -1,0 +1,20 @@
+quarkus:
+  datasource:
+    db-kind: h2
+    username: sa
+    password: ""
+    jdbc:
+      url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+      min-size: 1          # Minimum connection pool size
+      max-size: 5          # Maximum connection pool size
+      acquisition-timeout: 5s
+      initial-size: 1
+
+  hibernate-orm:
+    database:
+      generation: drop-and-create
+    log:
+      sql: true
+
+  flyway:
+    migrate-at-start: false
