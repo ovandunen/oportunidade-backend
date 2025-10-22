@@ -7,7 +7,6 @@ import ao.co.oportunidade.webhook.service.WebhookEventServiceFacade;
 import io.smallrye.reactive.messaging.annotations.Channel;
 import io.smallrye.reactive.messaging.annotations.Emitter;
 import jakarta.inject.Inject;
-import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -40,9 +39,9 @@ public class AppyPayWebhookResource {
      * @return webhook response
      */
     @POST
-    public Response receiveWebhook(@Valid AppyPayWebhookPayload payload) {
-        String transactionId = payload.getId();
-        String merchantTxId = payload.getMerchantTransactionId();
+    public Response receiveWebhook(AppyPayWebhookPayload payload) {
+        final String transactionId = payload.getId();
+        final String merchantTxId = payload.getMerchantTransactionId();
 
         LOG.infof("Received webhook for transaction: %s, merchant: %s, status: %s",
                 transactionId, merchantTxId, payload.getStatus());
@@ -60,7 +59,7 @@ public class AppyPayWebhookResource {
             }
 
             // Create webhook event record
-            WebhookEvent event = webhookEventService.createWebhookEvent(payload);
+            final WebhookEvent event = webhookEventService.createWebhookEvent(payload);
 
             // Send to async processing queue
             webhookEmitter.send(payload);

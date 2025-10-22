@@ -33,6 +33,7 @@ public class PaymentTransaction extends Domain {
     private Instant createdDate;
     private Instant updatedDate;
     private String errorMessage;
+    private Integer paymentId;
 
     @Override
     public UUID getId() {
