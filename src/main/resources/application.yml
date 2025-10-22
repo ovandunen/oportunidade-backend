@@ -23,7 +23,6 @@ quarkus:
     binder-enabled-default: true
 
 
-
   datasource:
     db-kind: postgresql
     username: ${DB_USERNAME:postgres}
