@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 
 
 @ApplicationScoped
-public  class ReferenceService extends DomainService<Reference, ReferenceRepository>{
+public class ReferenceService extends DomainService<Reference, ReferenceRepository>{
 
     /**
      * @return
