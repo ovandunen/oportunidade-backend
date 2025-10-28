@@ -80,6 +80,11 @@ webhook:
   retry-delay-seconds: ${WEBHOOK_RETRY_DELAY:60}
   secret: ${WEBHOOK_SECRET:}
 
+odoo:
+  webhook:
+    key: ${ODOO_WEBHOOK_KEY}
+    url: ${ODOO_WEBHOOK_URL}
+
 # Reactive Messaging Configuration for Webhook Processing
 mp:
     messaging:
