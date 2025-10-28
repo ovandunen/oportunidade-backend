@@ -46,16 +46,16 @@ public class OdooPaymentService {
 
         try {
             // Build Odoo request
-            OdooPaymentRequest request = buildOdooRequest(transaction);
+            final OdooPaymentRequest request = buildOdooRequest(transaction);
 
             // Send to Odoo webhook
-            OdooWebhookResponse response = odooClient.sendPayment(
+            final OdooWebhookResponse response = odooClient.sendPayment(
                     odooWebhookKey,
                     request
             );
 
             // Check response
-            if (response.getSuccess() != null && response.getSuccess()) {
+            if (Boolean.TRUE.equals(response.getSuccess())) {
                 LOG.infof("Successfully sent payment %d to Odoo. Odoo Payment ID: %d",
                         transaction.getId(), response.getPaymentId());
 

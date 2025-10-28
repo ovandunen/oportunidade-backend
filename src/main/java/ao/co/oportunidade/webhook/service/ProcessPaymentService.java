@@ -1,10 +1,12 @@
 package ao.co.oportunidade.webhook.service;
 
+import ao.co.oportunidade.odoo.service.OdooPaymentService;
 import ao.co.oportunidade.service.BasicApplicationService;
 import ao.co.oportunidade.webhook.*;
 import ao.co.oportunidade.webhook.dto.AppyPayWebhookPayload;
 import ao.co.oportunidade.webhook.dto.ReferenceInfo;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
 
@@ -21,6 +23,13 @@ public class ProcessPaymentService extends
                 Order,OrderRepository,PaymentTransactionService,OrderService> {
 
     private static final Logger LOG = Logger.getLogger(ProcessPaymentService.class);
+
+    private OdooPaymentService odooPaymentService;
+
+
+    public ProcessPaymentService(OdooPaymentService odooPaymentService) {
+        this.odooPaymentService = odooPaymentService;
+    }
 
     /**
      * Process the AppyPay webhook payload.
@@ -65,7 +74,8 @@ public class ProcessPaymentService extends
         order.setStatus(Order.OrderStatus.PAID);
         orderService.updateOrder(order);
 
-        createPaymentTransaction(payload, order, PaymentTransaction.TransactionStatus.SUCCESS);
+        final PaymentTransaction paymentTransaction = createPaymentTransaction(payload, order, PaymentTransaction.TransactionStatus.SUCCESS);
+        odooPaymentService.sendPaymentToOdoo(paymentTransaction);
 
         LOG.infof("Successfully processed payment for order: %s",
                 order.getMerchantTransactionId());

@@ -5,11 +5,14 @@ import ao.co.oportunidade.odoo.dto.OdooPaymentRequest;
 import ao.co.oportunidade.odoo.dto.OdooWebhookResponse;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 @RegisterRestClient(configKey = "odoo-api")
 @Path("/api")
 public interface OdooApiClient {
+
+
 
     /**
      * Send payment to Odoo's webhook/API endpoint
