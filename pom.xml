@@ -19,6 +19,7 @@
   </properties>
   <dependencyManagement>
     <dependencies>
+
       <dependency>
         <groupId>${quarkus.platform.group-id}</groupId>
         <artifactId>${quarkus.platform.artifact-id}</artifactId>
@@ -127,6 +128,12 @@
       <artifactId>junit-jupiter-engine</artifactId>
       <scope>test</scope>
     </dependency>
+      <dependency>
+          <groupId>org.wiremock</groupId>
+          <artifactId>wiremock</artifactId>
+          <version>4.0.0-beta.14</version>
+          <scope>test</scope>
+      </dependency>
 
   </dependencies>
   <build>
