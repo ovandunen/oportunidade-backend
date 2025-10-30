@@ -15,7 +15,7 @@ import java.util.UUID;
  * Repository for PaymentTransaction domain following DDD principles.
  */
 @ApplicationScoped
-public class PaymentTransactionRepository extends Repository<PaymentTransaction, PaymentTransactionEntity> {
+public class PaymentTransactionRepository extends Repository<PaymentTransaction, PaymentTransactionEntity,PaymentTransactionEntityMapper> {
 
     @Inject
     PaymentTransactionEntityMapper mapper;
@@ -32,7 +32,7 @@ public class PaymentTransactionRepository extends Repository<PaymentTransaction,
     }
 
     @Override
-    protected Optional<PaymentTransaction> findDomainById(PaymentTransaction domain) {
+    public Optional<PaymentTransaction> findDomainById(PaymentTransaction domain) {
         try {
             final PaymentTransactionEntity entity = getEntityManager()
                     .createNamedQuery(PaymentTransactionEntity.FIND_BY_ID, PaymentTransactionEntity.class)
@@ -44,10 +44,7 @@ public class PaymentTransactionRepository extends Repository<PaymentTransaction,
         }
     }
 
-    @Override
-    protected void createDomain(PaymentTransaction domain) {
-        getEntityManager().persist(mapper.mapToEntity(domain));
-    }
+
 
     /**
      * Find payment transaction by AppyPay transaction ID.
@@ -66,7 +63,7 @@ public class PaymentTransactionRepository extends Repository<PaymentTransaction,
                 return Optional.empty();
             }
             
-            return Optional.ofNullable(mapper.mapToDomain(results.get(0)));
+            return Optional.ofNullable(mapper.mapToDomain(results.getFirst()));
         } catch (Exception e) {
             return Optional.empty();
         }

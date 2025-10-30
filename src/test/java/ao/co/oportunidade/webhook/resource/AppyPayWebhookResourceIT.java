@@ -54,7 +54,7 @@ class AppyPayWebhookResourceIT {
     @Transactional
     void setUp() {
         final Order order = createOrder();
-        orderRepository.createDomain(order);
+        orderRepository.save(order);
         // Usage:
         final PaymentTransactionEntity paymentTransaction = createTransaction(APPYPAY_TRANSACTION_ID,
                 PaymentTransaction.TransactionStatus.SUCCESS,

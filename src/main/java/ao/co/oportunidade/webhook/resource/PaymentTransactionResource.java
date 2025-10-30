@@ -74,7 +74,7 @@ public class PaymentTransactionResource extends Resource<PaymentTransaction, Pay
     @POST
     public Response createTransaction(PaymentTransactionDTO transactionDTO) {
         PaymentTransaction transaction = mapper.mapToDomain(transactionDTO);
-        getDomainService().createDomain(transaction);
+        getDomainService().saveDomain(transaction);
         return Response.status(Response.Status.CREATED)
                 .entity(mapper.mapToDto(transaction))
                 .build();

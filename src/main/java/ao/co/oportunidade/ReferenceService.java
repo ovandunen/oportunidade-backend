@@ -3,7 +3,6 @@ package ao.co.oportunidade;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,14 +23,14 @@ public class ReferenceService extends DomainService<Reference, ReferenceReposito
      * @param reference
      */
     @Override
-    public void createDomain(Reference reference) {
+    public void saveDomain(Reference reference) {
         try {
             validateDomain(reference);
         } catch (DomainNotCreatedException e) {
             Logger.getLogger(ReferenceService.class.getName()).log(Level.SEVERE, "Domain not created",e);
             throw new RuntimeException(e);
         }
-        getRepository().createDomain(reference);
+        getRepository().save(reference);
     }
 
     public Reference getReferenceByNumber(String referenceNumber) {
