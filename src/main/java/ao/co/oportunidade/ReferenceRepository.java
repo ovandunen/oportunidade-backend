@@ -1,48 +1,36 @@
 package ao.co.oportunidade;
 
 
-import ao.co.oportunidade.entity.EntityMapper;
 import ao.co.oportunidade.entity.ReferenceEntity;
+import ao.co.oportunidade.webhook.entity.ReferenceEntityMapper;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
-public class ReferenceRepository extends Repository<Reference,ReferenceEntity>
+public class ReferenceRepository extends Repository<Reference,ReferenceEntity, ReferenceEntityMapper>
 {
-
-    @Inject
-    EntityMapper<Reference,ReferenceEntity> mapper;
-
-
-
 
     @Override
     protected Collection<Reference> findDomains() {
 
-        final List<ReferenceEntity> referencies = getEntityManager().
+        final List<ReferenceEntity> references = getEntityManager().
                 createNamedQuery(ReferenceEntity.FIND_ALL, ReferenceEntity.class).
                 getResultStream().toList();
-        return referencies.stream().map(reference ->mapper.mapToDomain(reference)).toList();
+        return references.stream().map(reference -> getMapper().mapToDomain(reference)).toList();
     }
 
 
     @Override
-    protected Optional<Reference> findDomainById(Reference domain) {
+    public Optional<Reference> findDomainById(Reference domain) {
 
         final ReferenceEntity reference = getEntityManager().createNamedQuery(ReferenceEntity.EMPLOYEE_FIND_BY_REFERENCE, ReferenceEntity.class).
                 setParameter(ReferenceEntity.PRIMARY_KEY, domain.getId()).getSingleResult();
-        return Optional.ofNullable(mapper.mapToDomain(reference));
+        return Optional.ofNullable(getMapper().mapToDomain(reference));
     }
 
-
-    @Override
-    protected void createDomain(final Reference reference) {
-        getEntityManager().persist(mapper.mapToEntity(reference));
-    }
 
     /**
      * Find reference by reference number.
@@ -61,7 +49,7 @@ public class ReferenceRepository extends Repository<Reference,ReferenceEntity>
                 return Optional.empty();
             }
 
-            return Optional.ofNullable(mapper.mapToDomain(results.get(0)));
+            return Optional.ofNullable(mapper.mapToDomain(results.getFirst()));
         } catch (Exception e) {
             return Optional.empty();
         }

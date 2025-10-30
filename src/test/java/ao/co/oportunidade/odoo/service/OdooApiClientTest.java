@@ -11,6 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 
+import java.time.LocalDate;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -37,9 +39,8 @@ class OdooApiClientTest {
         paymentData.setCurrencyId(1); // AOA currency ID
         paymentData.setPartnerId(123); // Customer/Partner ID
         paymentData.setPaymentReference("PAY-REF-001");
-        paymentData.setPaymentDate("2025-10-28");
+        paymentData.setPaymentDate(LocalDate.parse("2025-10-28"));
         paymentData.setPaymentType("inbound");
-        paymentData.setJournalId(1);
         paymentData.setPaymentMethodId(1);
         paymentData.setCommunication("Payment for order ORD-001");
 
@@ -55,33 +56,33 @@ class OdooApiClientTest {
     @DisplayName("Should successfully send payment with valid data")
     void testSendPayment_Success() {
         // Arrange
-        when(odooApiClient.sendPayment(validWebhookKey, validPaymentRequest))
+        when(odooApiClient.sendPayment(validWebhookKey,validPaymentRequest.getPayment()))
                 .thenReturn(successResponse);
 
         // Act
-        OdooWebhookResponse response = odooApiClient.sendPayment(validWebhookKey, validPaymentRequest);
+        OdooWebhookResponse response = odooApiClient.sendPayment(validWebhookKey,validPaymentRequest.getPayment());
 
         // Assert
         assertNotNull(response);
         assertTrue(response.getSuccess());
         assertEquals("Payment processed successfully", response.getMessage());
 
-        verify(odooApiClient, times(1)).sendPayment(validWebhookKey, validPaymentRequest);
+        verify(odooApiClient, times(1)).sendPayment(validWebhookKey,validPaymentRequest.getPayment());
     }
 
     @Test
     @DisplayName("Should handle null webhook key")
     void testSendPayment_NullWebhookKey() {
         // Arrange
-        when(odooApiClient.sendPayment(null, validPaymentRequest))
+        when(odooApiClient.sendPayment(null,validPaymentRequest.getPayment()))
                 .thenThrow(new WebApplicationException("Unauthorized", Response.Status.UNAUTHORIZED));
 
         // Act & Assert
         assertThrows(WebApplicationException.class, () -> {
-            odooApiClient.sendPayment(null, validPaymentRequest);
+            odooApiClient.sendPayment(null,validPaymentRequest.getPayment());
         });
 
-        verify(odooApiClient, times(1)).sendPayment(null, validPaymentRequest);
+        verify(odooApiClient, times(1)).sendPayment(null,validPaymentRequest.getPayment());
     }
 
     @Test
@@ -89,16 +90,16 @@ class OdooApiClientTest {
     void testSendPayment_InvalidWebhookKey() {
         // Arrange
         final String invalidKey = "invalid-key";
-        when(odooApiClient.sendPayment(invalidKey, validPaymentRequest))
+        when(odooApiClient.sendPayment(invalidKey,validPaymentRequest.getPayment()))
                 .thenThrow(new WebApplicationException("Unauthorized", Response.Status.UNAUTHORIZED));
 
         // Act & Assert
         final WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
-            odooApiClient.sendPayment(invalidKey, validPaymentRequest);
+            odooApiClient.sendPayment(invalidKey,validPaymentRequest.getPayment());
         });
 
         assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), exception.getResponse().getStatus());
-        verify(odooApiClient, times(1)).sendPayment(invalidKey, validPaymentRequest);
+        verify(odooApiClient, times(1)).sendPayment(invalidKey,validPaymentRequest.getPayment());
     }
 
     @Test
@@ -120,31 +121,31 @@ class OdooApiClientTest {
     @DisplayName("Should handle server error (500 Internal Server Error)")
     void testSendPayment_ServerError() {
         // Arrange
-        when(odooApiClient.sendPayment(validWebhookKey, validPaymentRequest))
+        when(odooApiClient.sendPayment(validWebhookKey,validPaymentRequest.getPayment()))
                 .thenThrow(new WebApplicationException("Internal Server Error", Response.Status.INTERNAL_SERVER_ERROR));
 
         // Act & Assert
         final WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
-            odooApiClient.sendPayment(validWebhookKey, validPaymentRequest);
+            odooApiClient.sendPayment(validWebhookKey,validPaymentRequest.getPayment());
         });
 
         assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), exception.getResponse().getStatus());
-        verify(odooApiClient, times(1)).sendPayment(validWebhookKey, validPaymentRequest);
+        verify(odooApiClient, times(1)).sendPayment(validWebhookKey,validPaymentRequest.getPayment());
     }
 
     @Test
     @DisplayName("Should handle timeout exception")
     void testSendPayment_Timeout() {
         // Arrange
-        when(odooApiClient.sendPayment(validWebhookKey, validPaymentRequest))
+        when(odooApiClient.sendPayment(validWebhookKey,validPaymentRequest.getPayment()))
                 .thenThrow(new jakarta.ws.rs.ProcessingException("Request timeout"));
 
         // Act & Assert
         assertThrows(jakarta.ws.rs.ProcessingException.class, () -> {
-            odooApiClient.sendPayment(validWebhookKey, validPaymentRequest);
+            odooApiClient.sendPayment(validWebhookKey,validPaymentRequest.getPayment());
         });
 
-        verify(odooApiClient, times(1)).sendPayment(validWebhookKey, validPaymentRequest);
+        verify(odooApiClient, times(1)).sendPayment(validWebhookKey,validPaymentRequest.getPayment());
     }
 
     @Test
@@ -156,11 +157,11 @@ class OdooApiClientTest {
         failedResponse.setMessage("Insufficient funds");
         failedResponse.setError("INSUFFICIENT_FUNDS");
 
-        when(odooApiClient.sendPayment(validWebhookKey, validPaymentRequest))
+        when(odooApiClient.sendPayment(validWebhookKey,validPaymentRequest.getPayment()))
                 .thenReturn(failedResponse);
 
         // Act
-        final OdooWebhookResponse response = odooApiClient.sendPayment(validWebhookKey, validPaymentRequest);
+        final OdooWebhookResponse response = odooApiClient.sendPayment(validWebhookKey,validPaymentRequest.getPayment());
 
         // Assert
         assertNotNull(response);
@@ -168,7 +169,7 @@ class OdooApiClientTest {
         assertEquals("Insufficient funds", response.getMessage());
         assertEquals("INSUFFICIENT_FUNDS", response.getError());
 
-        verify(odooApiClient, times(1)).sendPayment(validWebhookKey, validPaymentRequest);
+        verify(odooApiClient, times(1)).sendPayment(validWebhookKey,validPaymentRequest.getPayment());
     }
 
     @Test
@@ -178,32 +179,32 @@ class OdooApiClientTest {
         final OdooPaymentRequest invalidRequest = new OdooPaymentRequest();
         // Missing required fields
 
-        when(odooApiClient.sendPayment(validWebhookKey, invalidRequest))
+        when(odooApiClient.sendPayment(validWebhookKey, invalidRequest.getPayment()))
                 .thenThrow(new WebApplicationException("Bad Request: Missing required fields", Response.Status.BAD_REQUEST));
 
         // Act & Assert
         final WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
-            odooApiClient.sendPayment(validWebhookKey, invalidRequest);
+            odooApiClient.sendPayment(validWebhookKey, invalidRequest.getPayment());
         });
 
         assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), exception.getResponse().getStatus());
-        verify(odooApiClient, times(1)).sendPayment(validWebhookKey, invalidRequest);
+        verify(odooApiClient, times(1)).sendPayment(validWebhookKey, invalidRequest.getPayment());
     }
 
     @Test
     @DisplayName("Should handle network connectivity issues")
     void testSendPayment_NetworkError() {
         // Arrange
-        when(odooApiClient.sendPayment(validWebhookKey, validPaymentRequest))
+        when(odooApiClient.sendPayment(validWebhookKey,validPaymentRequest.getPayment()))
                 .thenThrow(new jakarta.ws.rs.ProcessingException("Connection refused"));
 
         // Act & Assert
         jakarta.ws.rs.ProcessingException exception = assertThrows(jakarta.ws.rs.ProcessingException.class, () -> {
-            odooApiClient.sendPayment(validWebhookKey, validPaymentRequest);
+            odooApiClient.sendPayment(validWebhookKey,validPaymentRequest.getPayment());
         });
 
         assertTrue(exception.getMessage().contains("Connection refused"));
-        verify(odooApiClient, times(1)).sendPayment(validWebhookKey, validPaymentRequest);
+        verify(odooApiClient, times(1)).sendPayment(validWebhookKey,validPaymentRequest.getPayment());
     }
 
     @Test
@@ -220,46 +221,46 @@ class OdooApiClientTest {
         final OdooWebhookResponse smallAmountResponse = new OdooWebhookResponse();
         smallAmountResponse.setSuccess(true);
 
-        when(odooApiClient.sendPayment(validWebhookKey, smallAmountRequest))
+        when(odooApiClient.sendPayment(validWebhookKey, smallAmountRequest.getPayment()))
                 .thenReturn(smallAmountResponse);
 
         // Act
-        final OdooWebhookResponse response = odooApiClient.sendPayment(validWebhookKey, smallAmountRequest);
+        final OdooWebhookResponse response = odooApiClient.sendPayment(validWebhookKey, smallAmountRequest.getPayment());
 
         // Assert
         assertNotNull(response);
         assertThat(response.getSuccess()).isNotNull().isEqualTo(Boolean.TRUE);
-        verify(odooApiClient, times(1)).sendPayment(validWebhookKey, smallAmountRequest);
+        verify(odooApiClient, times(1)).sendPayment(validWebhookKey, smallAmountRequest.getPayment());
     }
 
     @Test
     @DisplayName("Should verify correct HTTP headers are used")
     void testSendPayment_VerifyHeaders() {
         // Arrange
-        when(odooApiClient.sendPayment(anyString(), any(OdooPaymentRequest.class)))
+        when(odooApiClient.sendPayment(anyString(), any(OdooPaymentRequest.PaymentData.class)))
                 .thenReturn(successResponse);
 
         // Act
-        odooApiClient.sendPayment(validWebhookKey, validPaymentRequest);
+        odooApiClient.sendPayment(validWebhookKey,validPaymentRequest.getPayment());
 
         // Assert - verify the method was called with correct parameters
         verify(odooApiClient, times(1))
-                .sendPayment(eq(validWebhookKey), eq(validPaymentRequest));
+                .sendPayment(eq(validWebhookKey), eq(validPaymentRequest.getPayment()));
     }
 
     @Test
     @DisplayName("Should handle rate limiting (429 Too Many Requests)")
     void testSendPayment_RateLimited() {
         // Arrange
-        when(odooApiClient.sendPayment(validWebhookKey, validPaymentRequest))
+        when(odooApiClient.sendPayment(validWebhookKey,validPaymentRequest.getPayment()))
                 .thenThrow(new WebApplicationException("Too Many Requests", Response.Status.TOO_MANY_REQUESTS));
 
         // Act & Assert
         WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
-            odooApiClient.sendPayment(validWebhookKey, validPaymentRequest);
+            odooApiClient.sendPayment(validWebhookKey,validPaymentRequest.getPayment());
         });
 
         assertEquals(429, exception.getResponse().getStatus());
-        verify(odooApiClient, times(1)).sendPayment(validWebhookKey, validPaymentRequest);
+        verify(odooApiClient, times(1)).sendPayment(validWebhookKey,validPaymentRequest.getPayment());
     }
 }

@@ -19,13 +19,13 @@ public class PaymentTransactionService extends DomainService<PaymentTransaction,
     }
 
     @Override
-    public void createDomain(PaymentTransaction transaction) {
+    public void saveDomain(PaymentTransaction transaction) {
         try {
             validateDomain(transaction);
         } catch (ao.co.oportunidade.DomainNotCreatedException e) {
             throw new RuntimeException("Failed to create payment transaction", e);
         }
-        getRepository().createDomain(transaction);
+        getRepository().save(transaction);
     }
 
     /**

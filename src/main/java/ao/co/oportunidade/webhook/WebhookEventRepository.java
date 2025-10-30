@@ -4,7 +4,6 @@ import ao.co.oportunidade.Repository;
 import ao.co.oportunidade.webhook.entity.WebhookEventEntity;
 import ao.co.oportunidade.webhook.entity.WebhookEventEntityMapper;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 import java.util.Collection;
 import java.util.List;
@@ -14,10 +13,8 @@ import java.util.Optional;
  * Repository for WebhookEvent domain following DDD principles.
  */
 @ApplicationScoped
-public class WebhookEventRepository extends Repository<WebhookEvent, WebhookEventEntity> {
+public class WebhookEventRepository extends Repository<WebhookEvent, WebhookEventEntity,WebhookEventEntityMapper> {
 
-    @Inject
-    WebhookEventEntityMapper mapper;
 
     @Override
     protected Collection<WebhookEvent> findDomains() {
@@ -26,26 +23,21 @@ public class WebhookEventRepository extends Repository<WebhookEvent, WebhookEven
                 .getResultStream()
                 .toList();
         return entities.stream()
-                .map(mapper::mapToDomain)
+                .map(getMapper()::mapToDomain)
                 .toList();
     }
 
     @Override
-    protected Optional<WebhookEvent> findDomainById(WebhookEvent domain) {
+    public Optional<WebhookEvent> findDomainById(WebhookEvent domain) {
         try {
             final WebhookEventEntity entity = getEntityManager()
                     .createNamedQuery(WebhookEventEntity.FIND_BY_ID, WebhookEventEntity.class)
                     .setParameter(WebhookEventEntity.PRIMARY_KEY, domain.getId())
                     .getSingleResult();
-            return Optional.ofNullable(mapper.mapToDomain(entity));
+            return Optional.ofNullable(getMapper().mapToDomain(entity));
         } catch (Exception e) {
             return Optional.empty();
         }
-    }
-
-    @Override
-    protected void createDomain(WebhookEvent domain) {
-        getEntityManager().persist(mapper.mapToEntity(domain));
     }
 
     /**
@@ -65,7 +57,7 @@ public class WebhookEventRepository extends Repository<WebhookEvent, WebhookEven
                 return Optional.empty();
             }
             
-            return Optional.ofNullable(mapper.mapToDomain(results.get(0)));
+            return Optional.ofNullable(getMapper().mapToDomain(results.getFirst()));
         } catch (Exception e) {
             return Optional.empty();
         }
@@ -83,7 +75,7 @@ public class WebhookEventRepository extends Repository<WebhookEvent, WebhookEven
                 .setParameter("status", status.name())
                 .getResultList();
         return entities.stream()
-                .map(mapper::mapToDomain)
+                .map(getMapper()::mapToDomain)
                 .toList();
     }
 }

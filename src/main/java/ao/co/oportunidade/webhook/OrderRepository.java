@@ -14,7 +14,7 @@ import java.util.Optional;
  * Repository for Order domain following DDD principles.
  */
 @ApplicationScoped
-public class OrderRepository extends Repository<Order, OrderEntity> {
+public class OrderRepository extends Repository<Order, OrderEntity, OrderEntityMapper> {
 
     @Inject
     OrderEntityMapper mapper;
@@ -31,7 +31,7 @@ public class OrderRepository extends Repository<Order, OrderEntity> {
     }
 
     @Override
-    protected Optional<Order> findDomainById(Order domain) {
+    public Optional<Order> findDomainById(Order domain) {
         try {
             final OrderEntity entity = getEntityManager()
                     .createNamedQuery(OrderEntity.FIND_BY_ID, OrderEntity.class)
@@ -43,10 +43,7 @@ public class OrderRepository extends Repository<Order, OrderEntity> {
         }
     }
 
-    @Override
-    public void createDomain(Order domain) {
-        getEntityManager().persist(mapper.mapToEntity(domain));
-    }
+
 
     /**
      * Find order by merchant transaction ID.
@@ -88,7 +85,7 @@ public class OrderRepository extends Repository<Order, OrderEntity> {
                 return Optional.empty();
             }
             
-            return Optional.ofNullable(mapper.mapToDomain(results.get(0)));
+            return Optional.ofNullable(mapper.mapToDomain(results.getFirst()));
         } catch (Exception e) {
             return Optional.empty();
         }

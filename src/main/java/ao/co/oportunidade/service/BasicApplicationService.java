@@ -8,8 +8,8 @@ import lombok.Getter;
 
 
 @Getter
-public abstract class BasicApplicationService <FD extends Domain,FR extends Repository<FD,?>,
-                                     SD extends Domain,SR extends Repository<SD,?>,
+public abstract class BasicApplicationService <FD extends Domain,FR extends Repository<FD,?,?>,
+                                     SD extends Domain,SR extends Repository<SD,?,?>,
         FS extends DomainService<FD,FR>,SDS extends DomainService<SD,SR>> {
 
 

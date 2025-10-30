@@ -27,14 +27,15 @@ public class OrderService extends DomainService<Order, OrderRepository> {
     ReferenceService referenceService;
 
 
-    public  Order findOrCreateOrder(AppyPayWebhookPayload payload, Order.OrderStatus defaultStatus) {
+    public  Order find(AppyPayWebhookPayload payload) {
 
         final Optional<Order> existingOrder =
                 findByMerchantTransactionId(payload.getMerchantTransactionId());
 
-        if (existingOrder.isPresent()) {
-            return existingOrder.get();
-        }
+        return existingOrder.orElse(null);
+    }
+
+    public  Order create(AppyPayWebhookPayload payload, Order.OrderStatus defaultStatus) {
 
         // Create new order
         final Order order = new Order();
@@ -76,13 +77,13 @@ public class OrderService extends DomainService<Order, OrderRepository> {
 
     @Transactional
     @Override
-    public void createDomain(Order order) {
+    public void saveDomain(Order order) {
         try {
             validateDomain(order);
         } catch (ao.co.oportunidade.DomainNotCreatedException e) {
-            throw new RuntimeException("Failed to create order", e);
+            throw new RuntimeException("Failed to create invalidated order", e);
         }
-        getRepository().createDomain(order);
+        getRepository().save(order);
     }
 
     /**
@@ -95,19 +96,4 @@ public class OrderService extends DomainService<Order, OrderRepository> {
         return getRepository().findByMerchantTransactionId(merchantTransactionId);
     }
 
-    /**
-     * Update an existing order.
-     *
-     * @param order the order to update
-     */
-    @Transactional
-    public void updateOrder(Order order) {
-
-        getRepository().getEntityManager().merge(
-                Optional.ofNullable(
-            getRepository().findById(order.getId().getLeastSignificantBits()))
-                .orElseThrow(() -> new RuntimeException("Order not found "+order.getId()))
-        );
-        getRepository().createDomain(order); // Will persist/merge based on state
-    }
 }

@@ -14,6 +14,8 @@ import org.junit.jupiter.api.*;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+
+import java.time.LocalDate;
 import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -22,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
 @TestProfile(OdooApiClientIntegrationTest.OdooTestProfile.class)
-class OdooApiClientIntegrationTest {
+public class OdooApiClientIntegrationTest {
 
     private static WireMockServer wireMockServer;
 
@@ -84,7 +86,7 @@ class OdooApiClientIntegrationTest {
         OdooPaymentRequest request = createValidPaymentRequest();
 
         // Act
-        OdooWebhookResponse response = odooApiClient.sendPayment(VALID_WEBHOOK_KEY, request);
+        OdooWebhookResponse response = odooApiClient.sendPayment(VALID_WEBHOOK_KEY, request.getPayment());
 
         // Assert
         assertNotNull(response);
@@ -115,7 +117,7 @@ class OdooApiClientIntegrationTest {
 
         // Act & Assert
         WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
-            odooApiClient.sendPayment("invalid-key", request);
+            odooApiClient.sendPayment("invalid-key", request.getPayment());
         });
 
         assertEquals(401, exception.getResponse().getStatus());
@@ -140,7 +142,7 @@ class OdooApiClientIntegrationTest {
 
         // Act & Assert
         WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
-            odooApiClient.sendPayment(VALID_WEBHOOK_KEY, request);
+            odooApiClient.sendPayment(VALID_WEBHOOK_KEY, request.getPayment());
         });
 
         assertEquals(400, exception.getResponse().getStatus());
@@ -164,7 +166,7 @@ class OdooApiClientIntegrationTest {
 
         // Act & Assert
         WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
-            odooApiClient.sendPayment(VALID_WEBHOOK_KEY, request);
+            odooApiClient.sendPayment(VALID_WEBHOOK_KEY, request.getPayment());
         });
 
         assertEquals(500, exception.getResponse().getStatus());
@@ -189,7 +191,7 @@ class OdooApiClientIntegrationTest {
         // Act & Assert
         // This should timeout based on your client configuration
         assertThrows(jakarta.ws.rs.ProcessingException.class, () -> {
-            odooApiClient.sendPayment(VALID_WEBHOOK_KEY, request);
+            odooApiClient.sendPayment(VALID_WEBHOOK_KEY, request.getPayment());
         });
     }
 
@@ -213,7 +215,7 @@ class OdooApiClientIntegrationTest {
         OdooPaymentRequest request = createValidPaymentRequest();
 
         // Act
-        final OdooWebhookResponse response = odooApiClient.sendPayment(VALID_WEBHOOK_KEY, request);
+        final OdooWebhookResponse response = odooApiClient.sendPayment(VALID_WEBHOOK_KEY, request.getPayment());
 
         // Assert
         assertNotNull(response);
@@ -240,12 +242,10 @@ class OdooApiClientIntegrationTest {
         OdooPaymentRequest request = createValidPaymentRequest();
 
         // Act
-        odooApiClient.sendPayment(VALID_WEBHOOK_KEY, request);
+        odooApiClient.sendPayment(VALID_WEBHOOK_KEY, request.getPayment());
 
         // Assert - verify the request body was sent correctly
         verify(postRequestedFor(urlEqualTo(WEBHOOK_PATH))
-                .withRequestBody(containing("payment.create"))
-                .withRequestBody(containing("account.payment"))
                 .withRequestBody(containing("1500.00"))
                 .withRequestBody(containing("PAY-REF-001"))
                 .withRequestBody(containing("inbound")));
@@ -270,7 +270,7 @@ class OdooApiClientIntegrationTest {
 
         // Act & Assert
         WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
-            odooApiClient.sendPayment(VALID_WEBHOOK_KEY, request);
+            odooApiClient.sendPayment(VALID_WEBHOOK_KEY, request.getPayment());
         });
 
         assertEquals(429, exception.getResponse().getStatus());
@@ -289,7 +289,7 @@ class OdooApiClientIntegrationTest {
 
         // Act & Assert
         assertThrows(ProcessingException.class, () -> {
-            odooApiClient.sendPayment(VALID_WEBHOOK_KEY, request);
+            odooApiClient.sendPayment(VALID_WEBHOOK_KEY, request.getPayment());
         });
     }
 
@@ -300,9 +300,8 @@ class OdooApiClientIntegrationTest {
         paymentData.setCurrencyId(1); // AOA currency ID
         paymentData.setPartnerId(123); // Customer/Partner ID
         paymentData.setPaymentReference("PAY-REF-001");
-        paymentData.setPaymentDate("2025-10-28");
+        paymentData.setPaymentDate(LocalDate.parse("2025-10-28"));
         paymentData.setPaymentType("inbound");
-        paymentData.setJournalId(1);
         paymentData.setPaymentMethodId(1);
         paymentData.setCommunication("Payment for order ORD-001");
 

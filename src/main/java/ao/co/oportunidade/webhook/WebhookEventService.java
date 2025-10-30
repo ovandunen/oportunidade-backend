@@ -27,13 +27,13 @@ public class WebhookEventService extends DomainService<WebhookEvent, WebhookEven
     }
 
     @Override
-    public void createDomain(WebhookEvent event) {
+    public void saveDomain(WebhookEvent event) {
         try {
             validateDomain(event);
         } catch (ao.co.oportunidade.DomainNotCreatedException e) {
             throw new RuntimeException("Failed to create webhook event", e);
         }
-        getRepository().createDomain(event);
+        getRepository().save(event);
     }
 
     /**
@@ -75,7 +75,7 @@ public class WebhookEventService extends DomainService<WebhookEvent, WebhookEven
      * @param event the webhook event to update
      */
     public void updateEvent(WebhookEvent event) {
-        getRepository().createDomain(event); // Will persist/merge based on state
+        getRepository().save(event); // Will persist/merge based on state
     }
 
     public WebhookEvent createWebhookEvent(AppyPayWebhookPayload payload) {
@@ -94,8 +94,6 @@ public class WebhookEventService extends DomainService<WebhookEvent, WebhookEven
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize payload", e);
         }
-
-        getRepository().createDomain(event);
         return event;
     }
 }

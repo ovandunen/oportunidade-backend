@@ -5,14 +5,12 @@ import ao.co.oportunidade.odoo.dto.OdooPaymentDtoMapper;
 import ao.co.oportunidade.odoo.dto.OdooPaymentRequest;
 import ao.co.oportunidade.odoo.dto.OdooWebhookResponse;
 import ao.co.oportunidade.webhook.PaymentTransaction;
+import io.quarkus.logging.Log;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @ApplicationScoped
 public class OdooPaymentService {
@@ -42,34 +40,36 @@ public class OdooPaymentService {
      * Send payment to Odoo via their webhook endpoint
      */
     public void sendPaymentToOdoo(PaymentTransaction transaction) {
-        LOG.infof("Sending payment %d to Odoo webhook", transaction.getId());
+        LOG.infof("Sending payment %s to Odoo webhook", transaction.getId().toString());
 
         try {
             // Build Odoo request
-            final OdooPaymentRequest request = buildOdooRequest(transaction);
+            final OdooPaymentRequest request = mapOdooRequest(transaction);
+
+            Log.infof("Odoo request payload:\n%s", request);
 
             // Send to Odoo webhook
             final OdooWebhookResponse response = odooClient.sendPayment(
                     odooWebhookKey,
-                    request
+                    request.getPayment()
             );
 
             // Check response
             if (Boolean.TRUE.equals(response.getSuccess())) {
-                LOG.infof("Successfully sent payment %d to Odoo. Odoo Payment ID: %d",
+                LOG.infof("Successfully sent payment %s to Odoo. Odoo Payment ID: %s",
                         transaction.getId(), response.getPaymentId());
 
                 // Update transaction with Odoo payment ID
                 transaction.setPaymentId(response.getPaymentId());
 
             } else {
-                LOG.errorf("Odoo rejected payment %d: %s",
-                        transaction.getId(), response.getError());
+                LOG.errorf("Odoo rejected payment %s: %s",
+                        transaction.getId().toString(), response.getError());
                 throw new OdooSyncException("Odoo rejected payment: " + response.getError());
             }
 
         } catch (Exception e) {
-            LOG.errorf(e, "Failed to send payment %d to Odoo", transaction.getId());
+            LOG.errorf(e, "Failed to send payment to Odoo " + transaction.getId().toString());
             throw new OdooSyncException("Failed to sync to Odoo", e);
         }
     }
@@ -77,7 +77,7 @@ public class OdooPaymentService {
     /**
      * Build Odoo payment request from transaction
      */
-    private OdooPaymentRequest buildOdooRequest(PaymentTransaction transaction) {
+    private OdooPaymentRequest mapOdooRequest(PaymentTransaction transaction) {
 
             final OdooPaymentRequest.PaymentData paymentData = mapper.mapToDto(transaction);
             return new OdooPaymentRequest(paymentData);

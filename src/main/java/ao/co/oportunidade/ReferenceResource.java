@@ -28,6 +28,6 @@ public class ReferenceResource extends Resource<Reference, ReferenceService> {
 
     @POST
     public void createReference(ReferenceDTO reference) {
-        getDomainService().createDomain(mapper.mapToDomain(reference));
+        getDomainService().saveDomain(mapper.mapToDomain(reference));
     }
 }

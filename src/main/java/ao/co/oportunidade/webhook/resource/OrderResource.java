@@ -59,7 +59,7 @@ public class OrderResource extends Resource<Order, OrderService> {
     @POST
     public Response createOrder(OrderDTO orderDTO) {
         Order order = mapper.mapToDomain(orderDTO);
-        getDomainService().createDomain(order);
+        getDomainService().saveDomain(order);
         return Response.status(Response.Status.CREATED)
                 .entity(mapper.mapToDto(order))
                 .build();

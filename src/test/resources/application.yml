@@ -1,4 +1,14 @@
 quarkus:
+  rest-client:
+    logging:
+      scope: request-response
+      body-limit: 5000
+  log:
+    category:
+      "org.jboss.resteasy.reactive.client.logging":
+        level: DEBUG
+      "ao.co.oportunidade.odoo":
+        level: DEBUG
   datasource:
     db-kind: h2
     username: sa
@@ -18,3 +28,4 @@ quarkus:
 
   flyway:
     migrate-at-start: false
+
