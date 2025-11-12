@@ -1,17 +1,5 @@
 quarkus:
 
-  datasource:
-    db-kind: postgresql
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
-    jdbc:
-      url: ${DB_URL:jdbc:postgresql://localhost:5432/odoo_payments}
-
-    # Hibernate Configuration
-  hibernate-orm:
-    database:
-      generation: drop-and-create
-
     log:
       sql: true
     sql-load-script: no-file

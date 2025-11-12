@@ -29,3 +29,7 @@ quarkus:
   flyway:
     migrate-at-start: false
 
+odoo:
+  webhook:
+    key: ${ODOO_WEBHOOK_KEY}
+    url: ${ODOO_WEBHOOK_URL}
