@@ -1,6 +1,6 @@
 package ao.co.oportunidade.webhook;
 
-import ao.co.oportunidade.Repository;
+import solutions.envision.entity.Repository;
 import ao.co.oportunidade.webhook.entity.WebhookEventEntity;
 import ao.co.oportunidade.webhook.entity.WebhookEventEntityMapper;
 import jakarta.enterprise.context.ApplicationScoped;

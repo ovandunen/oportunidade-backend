@@ -3,12 +3,13 @@ package ao.co.oportunidade.webhook.dto;
 import ao.co.oportunidade.webhook.WebhookEvent;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import solutions.envision.dto.DtoMapper;
 
 /**
  * MapStruct mapper for WebhookEventDTO and WebhookEvent domain.
  */
 @Mapper(componentModel = "cdi")
-public interface WebhookEventDtoMapper extends ao.co.oportunidade.dto.DtoMapper<WebhookEventDTO, WebhookEvent> {
+public interface WebhookEventDtoMapper extends DtoMapper<WebhookEventDTO, WebhookEvent> {
 
     @Mapping(target = "processingStatus", source = "processingStatus")
     WebhookEventDTO mapToDto(WebhookEvent domain);

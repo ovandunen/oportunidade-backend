@@ -1,10 +1,14 @@
 package ao.co.oportunidade.webhook.resource;
 
+import ao.co.oportunidade.order.entity.OrderRepository;
+import ao.co.oportunidade.order.model.Order;
+import ao.co.oportunidade.payment.entity.PaymentTransactionRepository;
+import ao.co.oportunidade.payment.model.PaymentTransaction;
 import ao.co.oportunidade.webhook.*;
 import ao.co.oportunidade.webhook.dto.AppyPayWebhookPayload;
 import ao.co.oportunidade.webhook.dto.CustomerInfo;
 import ao.co.oportunidade.webhook.dto.ReferenceInfo;
-import ao.co.oportunidade.webhook.entity.PaymentTransactionEntity;
+import ao.co.oportunidade.payment.entity.PaymentTransactionEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import jakarta.inject.Inject;

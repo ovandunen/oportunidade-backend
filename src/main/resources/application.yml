@@ -30,7 +30,7 @@ quarkus:
     jdbc:
       url: ${DB_URL:jdbc:postgresql://localhost:5432/odoo_payments}
 
-  # Hibernate Configuration
+    # Hibernate Configuration
   hibernate:
     orm:
       schema-generation:
@@ -39,7 +39,7 @@ quarkus:
           generation-target: database
 
     log:
-      sql: false
+      sql: true
     sql-load-script: no-file
 
   # Flyway Configuration

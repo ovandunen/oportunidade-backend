@@ -1,0 +1,40 @@
+package ao.co.oportunidade.reference.model;
+
+
+
+import ao.co.oportunidade.order.model.Amount;
+import jakarta.persistence.Id;
+import lombok.Getter;
+import lombok.Setter;
+import solutions.envision.model.Domain;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+
+@Getter
+@Setter
+public class Reference extends Domain {
+
+    @Id
+    private final UUID id;
+    private String entity;
+    private String referenceNumber;
+    private String currency;
+    private List<Amount> amounts;
+    private Double minAmount;
+    private Double maxAmount;
+    private Instant startDate;
+    private Instant expirationDate;
+    private Boolean isActive;
+    private String createdBy;
+    private String updatedBy;
+    private Instant createdDate;
+    private Instant updatedDate;
+
+    // Constructors, getters, and setters
+    public Reference() {
+        id = UUID.randomUUID();
+    }
+}
