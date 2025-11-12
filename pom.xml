@@ -94,13 +94,17 @@
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-junit5</artifactId>
-      <scope>test</scope>
+      <artifactId>quarkus-smallrye-openapi</artifactId>
     </dependency>
+      <dependency>
+          <groupId>io.quarkus</groupId>
+          <artifactId>quarkus-junit5</artifactId>
+      <scope>test</scope>
+      </dependency>
       <dependency>
           <groupId>io.rest-assured</groupId>
           <artifactId>rest-assured</artifactId>
-      <scope>test</scope>
+          <scope>test</scope>
       </dependency>
       <dependency>
           <groupId>org.assertj</groupId>
@@ -108,32 +112,32 @@
       <version>3.11.1</version>
           <scope>test</scope>
       </dependency>
-      <dependency>
-          <groupId>org.mockito</groupId>
-          <artifactId>mockito-core</artifactId>
-          <scope>test</scope>
-      </dependency>
     <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-junit5-mockito</artifactId>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
       <scope>test</scope>
     </dependency>
       <dependency>
-          <groupId>org.junit.jupiter</groupId>
-          <artifactId>junit-jupiter-api</artifactId>
+          <groupId>io.quarkus</groupId>
+          <artifactId>quarkus-junit5-mockito</artifactId>
           <scope>test</scope>
       </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
+      <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
     </dependency>
       <dependency>
-          <groupId>org.wiremock</groupId>
-          <artifactId>wiremock</artifactId>
-          <version>4.0.0-beta.14</version>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter-engine</artifactId>
           <scope>test</scope>
       </dependency>
+    <dependency>
+      <groupId>org.wiremock</groupId>
+      <artifactId>wiremock</artifactId>
+      <version>4.0.0-beta.14</version>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
   <build>
