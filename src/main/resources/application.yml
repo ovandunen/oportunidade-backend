@@ -28,7 +28,7 @@ quarkus:
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     jdbc:
-      url: ${DB_URL:jdbc:postgresql://localhost:5432/oportunidade}
+      url: ${DB_URL:jdbc:postgresql://localhost:5432/odoo_payments}
 
   # Hibernate Configuration
   hibernate:
