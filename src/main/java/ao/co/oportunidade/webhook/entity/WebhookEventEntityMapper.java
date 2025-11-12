@@ -3,12 +3,13 @@ package ao.co.oportunidade.webhook.entity;
 import ao.co.oportunidade.webhook.WebhookEvent;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import solutions.envision.entity.EntityMapper;
 
 /**
  * MapStruct mapper for WebhookEvent domain and WebhookEventEntity.
  */
 @Mapper(componentModel = "cdi")
-public interface WebhookEventEntityMapper extends ao.co.oportunidade.entity.EntityMapper<WebhookEvent, WebhookEventEntity> {
+public interface WebhookEventEntityMapper extends EntityMapper<WebhookEvent, WebhookEventEntity> {
 
     @Mapping(target = "processingStatus", source = "processingStatus")
     WebhookEventEntity mapToEntity(WebhookEvent domain);

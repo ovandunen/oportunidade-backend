@@ -1,6 +1,6 @@
 package ao.co.oportunidade.webhook.entity;
 
-import ao.co.oportunidade.DomainEntity;
+import solutions.envision.entity.DomainEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

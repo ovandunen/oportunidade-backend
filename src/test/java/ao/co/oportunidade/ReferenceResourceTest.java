@@ -1,5 +1,7 @@
 package ao.co.oportunidade;
 
+import ao.co.oportunidade.reference.model.Reference;
+import ao.co.oportunidade.reference.service.ReferenceService;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 

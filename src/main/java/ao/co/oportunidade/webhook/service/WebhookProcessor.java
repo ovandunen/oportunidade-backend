@@ -1,5 +1,6 @@
 package ao.co.oportunidade.webhook.service;
 
+import ao.co.oportunidade.payment.service.PaymentProcessService;
 import ao.co.oportunidade.webhook.dto.AppyPayWebhookPayload;
 import io.smallrye.reactive.messaging.annotations.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -18,7 +19,7 @@ public class WebhookProcessor {
     private static final Logger LOG = Logger.getLogger(WebhookProcessor.class);
 
     @Inject
-    ProcessPaymentService processPaymentService;
+    PaymentProcessService paymentProcessService;
 
     @Inject
     WebhookEventServiceFacade webhookEventService;
@@ -40,7 +41,7 @@ public class WebhookProcessor {
             webhookEventService.markAsProcessing(transactionId);
 
             // Process the payment
-            processPaymentService.processWebhook(payload);
+            paymentProcessService.processWebhook(payload);
 
             // Mark as processed
             webhookEventService.markAsProcessed(transactionId);

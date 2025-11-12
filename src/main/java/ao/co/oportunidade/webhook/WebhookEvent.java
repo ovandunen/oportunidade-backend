@@ -1,6 +1,6 @@
 package ao.co.oportunidade.webhook;
 
-import ao.co.oportunidade.Domain;
+import solutions.envision.model.Domain;
 import lombok.*;
 
 import java.time.Instant;

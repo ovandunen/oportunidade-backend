@@ -1,6 +1,6 @@
 package ao.co.oportunidade.webhook.dto;
 
-import ao.co.oportunidade.dto.DTO;
+import solutions.envision.dto.DTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

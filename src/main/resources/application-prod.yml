@@ -1,0 +1,75 @@
+quarkus:
+  datasource:
+    db-kind: postgresql
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    jdbc:
+      url: ${DB_URL}
+
+  # Hibernate Configuration
+  hibernate:
+    orm:
+      schema-generation:
+        scripts:
+          generation: drop-and-create
+          generation-target: database
+
+  log:
+    sql: true
+  sql-load-script: no-file
+
+  # Flyway Configuration
+  flyway:
+    migrate-at-start: true
+    baseline-on-migrate: true
+    baseline-version: 0
+
+  # HTTP Configuration
+  http:
+    port: 8080
+    cors:
+      enabled: true
+      origins: "*"
+
+
+  # Logging Configuration
+  logging:
+    level:
+      root: INFO
+      ao.co.oportunidade.webhook: DEBUG
+    pattern:
+      console: "%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{3.}] (%t) %s%e%n"
+
+  # Health Check Configuration
+  smallrye-health:
+    ui:
+      enable: true
+
+  # OpenAPI / Swagger UI Configuration
+  swagger-ui:
+    enable: true
+    always-include: true
+
+# Webhook Configuration
+webhook:
+  max-retry-count: ${WEBHOOK_MAX_RETRY:3}
+  retry-delay-seconds: ${WEBHOOK_RETRY_DELAY:60}
+  secret: ${WEBHOOK_SECRET:}
+
+odoo-api/mp-rest/url: http://localhost:8000
+
+odoo:
+  webhook:
+    key: ${ODOO_WEBHOOK_KEY}
+    url: ${ODOO_WEBHOOK_URL}
+
+# Reactive Messaging Configuration for Webhook Processing
+mp:
+    messaging:
+      incoming:
+        webhook-events-in:
+          connector: smallrye-in-memory
+      outgoing:
+        webhook-events-out:
+          connector: smallrye-in-memory
+

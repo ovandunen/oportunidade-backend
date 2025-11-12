@@ -1,6 +1,9 @@
 package ao.co.oportunidade;
 
 
+import ao.co.oportunidade.reference.entity.ReferenceRepository;
+import ao.co.oportunidade.reference.model.Reference;
+import ao.co.oportunidade.reference.service.ReferenceService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.InjectMock;
 import jakarta.inject.Inject;
@@ -24,7 +27,7 @@ public class ReferenceServiceTest {
     @InjectMock
     ReferenceRepository referenceRepository;
 
-    private  Reference reference;
+    private Reference reference;
 
 
     @BeforeEach

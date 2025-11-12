@@ -1,0 +1,44 @@
+package ao.co.oportunidade.reference.service;
+
+import ao.co.oportunidade.reference.entity.ReferenceRepository;
+import ao.co.oportunidade.reference.model.Reference;
+import jakarta.enterprise.context.ApplicationScoped;
+import solutions.envision.model.DomainNotCreatedException;
+import solutions.envision.service.DomainService;
+
+import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+
+@ApplicationScoped
+public class ReferenceService extends DomainService<Reference, ReferenceRepository> {
+
+    /**
+     * @return
+     */
+    @Override
+    public Collection<Reference> getAllDomains() {
+
+      return getRepository().findDomains();
+    }
+
+    /**
+     * @param reference
+     */
+    @Override
+    public void saveDomain(Reference reference) {
+        try {
+            validateDomain(reference);
+        } catch (DomainNotCreatedException e) {
+            Logger.getLogger(ReferenceService.class.getName()).log(Level.SEVERE, "Domain not created",e);
+            throw new RuntimeException(e);
+        }
+        getRepository().save(reference);
+    }
+
+    public Reference getReferenceByNumber(String referenceNumber) {
+        return  getRepository().findByReferenceNumber(referenceNumber).orElse(null);
+    }
+}
+

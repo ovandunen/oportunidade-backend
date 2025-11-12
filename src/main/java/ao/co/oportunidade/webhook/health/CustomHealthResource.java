@@ -10,7 +10,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
 
-import static ao.co.oportunidade.Resource.SERVER_FAILURE;
+import static solutions.envision.resource.Resource.SERVER_FAILURE;
 import static javax.security.auth.callback.ConfirmationCallback.OK;
 
 @Path("/api/health")

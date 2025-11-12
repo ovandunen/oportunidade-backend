@@ -1,11 +1,12 @@
 package ao.co.oportunidade.webhook;
 
-import ao.co.oportunidade.DomainService;
+import solutions.envision.service.DomainService;
 import ao.co.oportunidade.webhook.dto.AppyPayWebhookPayload;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import solutions.envision.model.DomainNotCreatedException;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -30,7 +31,7 @@ public class WebhookEventService extends DomainService<WebhookEvent, WebhookEven
     public void saveDomain(WebhookEvent event) {
         try {
             validateDomain(event);
-        } catch (ao.co.oportunidade.DomainNotCreatedException e) {
+        } catch (DomainNotCreatedException e) {
             throw new RuntimeException("Failed to create webhook event", e);
         }
         getRepository().save(event);
