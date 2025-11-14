@@ -1,6 +1,5 @@
 package solutions.envision.odoo.service;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import solutions.envision.odoo.dto.OdooPaymentRequest;
 import solutions.envision.odoo.dto.OdooWebhookResponse;
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -33,23 +32,20 @@ public class OdooApiClientIntegrationTest {
     @RestClient
     OdooApiClient odooApiClient;
 
+
     private static final String VALID_WEBHOOK_KEY = "test-webhook-key-12345";
     private static final String WEBHOOK_PATH = "/api/webhook/payment";
 
     public static class OdooTestProfile implements QuarkusTestProfile {
 
-        @ConfigProperty(name = "odoo.webhook.key")
-        String odooWebhookKey;
-
-        @ConfigProperty(name = "odoo.webhook.url")
-        String odooWebhookUrl;
-
+      @Inject
+      OdooWebhookConfiguration configuration;
 
         @Override
         public Map<String, String> getConfigOverrides() {
             return Map.of(
-                    "quarkus.rest-client.odoo-api.url", odooWebhookUrl,
-                    "odoo.webhook.key", odooWebhookKey
+                    "quarkus.rest-client.odoo-api.url", configuration.getOdooWebhookUrl(),
+                    "odoo.webhook.key", configuration.getOdooWebhookKey()
             );
         }
     }
@@ -66,6 +62,7 @@ public class OdooApiClientIntegrationTest {
         if (wireMockServer != null) {
             wireMockServer.stop();
         }
+
     }
 
     @BeforeEach

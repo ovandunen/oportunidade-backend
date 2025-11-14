@@ -26,8 +26,8 @@ quarkus:
     log:
       sql: true
 
-  flyway:
-    migrate-at-start: false
+flyway:
+  migrate-at-start: false
 
 odoo:
   webhook:
