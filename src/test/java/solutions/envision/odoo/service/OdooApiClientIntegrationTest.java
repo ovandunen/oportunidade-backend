@@ -32,15 +32,20 @@ public class OdooApiClientIntegrationTest {
     @RestClient
     OdooApiClient odooApiClient;
 
+
     private static final String VALID_WEBHOOK_KEY = "test-webhook-key-12345";
     private static final String WEBHOOK_PATH = "/api/webhook/payment";
 
     public static class OdooTestProfile implements QuarkusTestProfile {
+
+      @Inject
+      OdooWebhookConfiguration configuration;
+
         @Override
         public Map<String, String> getConfigOverrides() {
             return Map.of(
-                    "quarkus.rest-client.odoo-api.url", "http://localhost:8088",
-                    "odoo.webhook.key", VALID_WEBHOOK_KEY
+                    "quarkus.rest-client.odoo-api.url", configuration.getOdooWebhookUrl(),
+                    "odoo.webhook.key", configuration.getOdooWebhookKey()
             );
         }
     }
@@ -57,6 +62,7 @@ public class OdooApiClientIntegrationTest {
         if (wireMockServer != null) {
             wireMockServer.stop();
         }
+
     }
 
     @BeforeEach
