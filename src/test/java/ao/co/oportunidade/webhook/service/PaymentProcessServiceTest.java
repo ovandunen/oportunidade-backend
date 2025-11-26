@@ -15,6 +15,8 @@ import ao.co.oportunidade.webhook.dto.ReferenceInfo;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.junit.jupiter.api.*;
 import org.mockito.ArgumentCaptor;
 
@@ -43,6 +45,12 @@ class PaymentProcessServiceTest {
     private static final String REFERENCE_NUMBER = "123456789";
 
     private Reference reference;
+
+    @ConfigProperty(name = "odoo.webhook.key")
+    String odooKey;
+
+    @ConfigProperty(name = "odoo.webhook.url")
+    String odooUrl;
 
     @Inject
     PaymentProcessService paymentProcessService;
