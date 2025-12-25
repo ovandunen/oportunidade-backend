@@ -42,8 +42,6 @@ public class OdooApiClientIntegrationTest {
     private static final String VALID_WEBHOOK_KEY = "test-webhook-key-12345";
     private static final String WEBHOOK_PATH = "/api/webhook/payment";
 
-
-
     @BeforeAll
     static void startWireMock() {
         wireMockServer = new WireMockServer(8088);
