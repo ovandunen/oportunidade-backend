@@ -96,3 +96,12 @@ mp:
         webhook-events-out:
           connector: smallrye-in-memory
 
+document:
+          access:
+                  duration:
+                            hours: 72
+          max:
+                downloads:
+                            basic: 10
+                            standard: 50
+                            premium:  200

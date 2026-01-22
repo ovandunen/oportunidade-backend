@@ -19,7 +19,7 @@ public abstract class DomainService <D extends Domain, R extends Repository<D,?,
     R  repository;
 
     public abstract Collection<D> getAllDomains();
-    public abstract void saveDomain(D  domain);
+    public abstract void transact(D  domain);
 
     protected void validateDomain(D domain) throws DomainNotCreatedException {
         UUID id = Optional.ofNullable(domain).orElseThrow(() -> new NullPointerException(

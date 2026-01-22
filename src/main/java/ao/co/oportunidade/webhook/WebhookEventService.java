@@ -28,7 +28,7 @@ public class WebhookEventService extends DomainService<WebhookEvent, WebhookEven
     }
 
     @Override
-    public void saveDomain(WebhookEvent event) {
+    public void transact(WebhookEvent event) {
         try {
             validateDomain(event);
         } catch (DomainNotCreatedException e) {

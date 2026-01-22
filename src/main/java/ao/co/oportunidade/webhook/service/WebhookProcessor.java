@@ -32,7 +32,7 @@ public class WebhookProcessor {
      */
     @Incoming("webhook-events-in")
     @Blocking
-    public void processWebhook(AppyPayWebhookPayload payload) {
+    public void processPayment(AppyPayWebhookPayload payload) {
         final String transactionId = payload.getId();
         LOG.infof("Starting async processing of webhook: %s", transactionId);
 
@@ -41,7 +41,8 @@ public class WebhookProcessor {
             webhookEventService.markAsProcessing(transactionId);
 
             // Process the payment
-            paymentProcessService.processWebhook(payload);
+            paymentProcessService.processPaymentStatus(payload);
+
 
             // Mark as processed
             webhookEventService.markAsProcessed(transactionId);
