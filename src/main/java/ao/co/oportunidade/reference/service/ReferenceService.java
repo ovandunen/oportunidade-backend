@@ -27,7 +27,7 @@ public class ReferenceService extends DomainService<Reference, ReferenceReposito
      * @param reference
      */
     @Override
-    public void saveDomain(Reference reference) {
+    public void transact(Reference reference) {
         try {
             validateDomain(reference);
         } catch (DomainNotCreatedException e) {

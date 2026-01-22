@@ -33,6 +33,7 @@ quarkus:
     ui:
       enable: true
 
+
   swagger-ui:
     enable: true
     always-include: true
@@ -57,3 +58,16 @@ mp:
     outgoing:
       webhook-events-out:
         connector: smallrye-in-memory
+  jwt:
+    verify:
+      publickey:
+        location: ${PATH_TO_PUBLIC_KEY_PM}
+
+smallrye:
+        jwt:
+          sign:
+            key:
+              location: ${PATH_TO_PRIVATE_KEY_PM}
+
+jwt:
+  secret: ${JWT_SECRET}

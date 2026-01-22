@@ -1,4 +1,4 @@
-package solutions.envision.odoo.service.document;
+package solutions.envision.odoo.document.service;
 
 
 
@@ -8,6 +8,10 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import solutions.envision.odoo.document.DocumentAccessAudit;
+import solutions.envision.odoo.document.DocumentAccessLog;
+import solutions.envision.odoo.document.entity.DocumentAccessTokenEntity;
+import solutions.envision.odoo.document.entity.TokenValidationResult;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -19,6 +23,7 @@ public class DocumentAccessTokenService {
     @Inject
     EntityManager em;
 
+
     @ConfigProperty(name = "jwt.secret")
     String jwtSecret;
 
@@ -29,15 +34,15 @@ public class DocumentAccessTokenService {
      * Generate access token for specific documents
      */
     @Transactional
-    public DocumentAccessToken generateToken(
-            String employerId,
-            List<Integer> candidateIds,
-            String packageType) {
+    public DocumentAccessTokenEntity generateToken(
+            final String employerId,
+            final List<Integer> candidateIds,
+            final String packageType) {
 
-        Instant expiresAt = Instant.now().plus(Duration.ofHours(accessDurationHours));
+       final  Instant expiresAt = Instant.now().plus(Duration.ofHours(accessDurationHours));
 
         // Create JWT with claims
-        String token = Jwt.issuer("document-service")
+        final String token = Jwt.issuer("document-service")
                 .subject(employerId)
                 .claim("employer_id", employerId)
                 .claim("candidate_ids", candidateIds)
@@ -47,7 +52,7 @@ public class DocumentAccessTokenService {
                 .sign();
 
         // Persist access record
-        DocumentAccessToken accessToken = new DocumentAccessToken();
+        final DocumentAccessTokenEntity accessToken = new DocumentAccessTokenEntity();
         accessToken.setToken(token);
         accessToken.setEmployerId(employerId);
         accessToken.setCandidateIds(candidateIds);
@@ -67,13 +72,13 @@ public class DocumentAccessTokenService {
      */
     @Transactional
     public String generateDocumentToken(
-            String employerId,
-            Integer candidateId,
-            Integer documentId) {
+            final String employerId,
+            final Integer candidateId,
+            final Integer documentId) {
 
-        Instant expiresAt = Instant.now().plus(Duration.ofHours(24));
+        final Instant expiresAt = Instant.now().plus(Duration.ofHours(24));
 
-        String token = Jwt.issuer("document-service")
+        final String token = Jwt.issuer("document-service")
                 .subject(employerId)
                 .claim("employer_id", employerId)
                 .claim("candidate_id", candidateId)
@@ -83,7 +88,7 @@ public class DocumentAccessTokenService {
                 .sign();
 
         // Store in access log
-        DocumentAccessLog log = new DocumentAccessLog();
+        final DocumentAccessLog log = new DocumentAccessLog();
         log.setToken(token);
         log.setEmployerId(employerId);
         log.setCandidateId(candidateId);
@@ -101,9 +106,9 @@ public class DocumentAccessTokenService {
      */
     @Transactional
     public TokenValidationResult validateToken(String token) {
-        DocumentAccessToken accessToken = em.createQuery(
+        final DocumentAccessTokenEntity accessToken = em.createQuery(
                         "SELECT t FROM DocumentAccessToken t WHERE t.token = :token",
-                        DocumentAccessToken.class)
+                        DocumentAccessTokenEntity.class)
                 .setParameter("token", token)
                 .getResultStream()
                 .findFirst()
@@ -134,7 +139,7 @@ public class DocumentAccessTokenService {
      */
     @Transactional
     public void recordAccess(String token, Integer candidateId, Integer documentId, String ipAddress) {
-        DocumentAccessAudit audit = new DocumentAccessAudit();
+        final DocumentAccessAudit audit = new DocumentAccessAudit();
         audit.setToken(token);
         audit.setCandidateId(candidateId);
         audit.setDocumentId(documentId);
@@ -144,15 +149,14 @@ public class DocumentAccessTokenService {
         em.persist(audit);
     }
 
-    private int getMaxDownloadsForPackage(String packageType) {
+    private int getMaxDownloadsForPackage(final String packageType) {
         return switch (packageType) {
             case "basic" -> 10;
             case "standard" -> 50;
             case "premium" -> 200;
             case "unlimited" -> Integer.MAX_VALUE;
-            default -> 10;
+            default -> 25;
         };
     }
 }
 
-record TokenValidationResult(boolean valid, String message, DocumentAccessToken token) {}

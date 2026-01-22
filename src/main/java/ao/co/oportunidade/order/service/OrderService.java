@@ -80,7 +80,7 @@ public class OrderService extends DomainService<Order, OrderRepository> {
 
     @Transactional
     @Override
-    public void saveDomain(Order order) {
+    public void transact(Order order) {
         try {
             validateDomain(order);
         } catch (DomainNotCreatedException e) {

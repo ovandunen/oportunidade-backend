@@ -1,11 +1,16 @@
-package solutions.envision.odoo;
+package solutions.envision.odoo.document;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 
 @Entity
 @Table(name = "document_access_log")
+@Getter
+@Setter
+
 public class DocumentAccessLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +32,7 @@ public class DocumentAccessLog {
     private Instant expiresAt;
 
     @Column(name = "accessed")
-    private Boolean accessed = false;
+    private boolean accessed = false;
 
     // Getters and setters
 }

@@ -149,7 +149,7 @@ class PaymentProcessServiceTest {
     }
 
     @Test
-    void testProcessWebhook_Success_CreatesOrderAndTransaction() {
+    void testProcessPaymentStatus_Success_CreatesOrderAndTransaction() {
 
         final Order order = new Order();
         order.setId(ORDER_ID);
@@ -172,11 +172,11 @@ class PaymentProcessServiceTest {
 
 
         // When
-        paymentProcessService.processWebhook(successPayload);
+        paymentProcessService.processPaymentStatus(successPayload);
 
         // Then - verify order was created/updated
         final ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
-        verify(orderService, atLeastOnce()).saveDomain(orderCaptor.capture());
+        verify(orderService, atLeastOnce()).transact(orderCaptor.capture());
 
         final Order capturedOrder = orderCaptor.getValue();
         assertThat(capturedOrder.getMerchantTransactionId()).isEqualTo("ORDER-12345");
@@ -188,7 +188,7 @@ class PaymentProcessServiceTest {
 
         // Then - verify transaction was created
         final ArgumentCaptor<PaymentTransaction> txCaptor = ArgumentCaptor.forClass(PaymentTransaction.class);
-        verify(paymentTransactionService).saveDomain(txCaptor.capture());
+        verify(paymentTransactionService).transact(txCaptor.capture());
         
         final PaymentTransaction capturedTx = txCaptor.getValue();
         assertThat(capturedTx.getAppypayTransactionId()).isEqualTo("tx-success-123");
@@ -197,7 +197,7 @@ class PaymentProcessServiceTest {
     }
 
     @Test
-    void testProcessWebhook_Pending_CreatesOrderWithPendingStatus() {
+    void testProcessPaymentStatus_Pending_CreatesOrderWithPendingStatus() {
 
         final Order order = new Order();
         order.setId(ORDER_ID);
@@ -217,18 +217,18 @@ class PaymentProcessServiceTest {
                 .thenReturn(Optional.of(order));
 
         // When
-        paymentProcessService.processWebhook(pendingPayload);
+        paymentProcessService.processPaymentStatus(pendingPayload);
 
         // Then
         final ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
-        verify(orderService, atLeastOnce()).saveDomain(orderCaptor.capture());
+        verify(orderService, atLeastOnce()).transact(orderCaptor.capture());
 
         assertThat(orderCaptor.getValue().getStatus()).isEqualTo(Order.OrderStatus.PENDING);
 
     }
 
     @Test
-    void testProcessWebhook_Failed_CreatesOrderWithFailedStatus() {
+    void testProcessPaymentStatus_Failed_CreatesOrderWithFailedStatus() {
 
         final Order order = new Order();
         order.setId(ORDER_ID);
@@ -249,20 +249,20 @@ class PaymentProcessServiceTest {
 
 
         // When
-        paymentProcessService.processWebhook(failedPayload);
+        paymentProcessService.processPaymentStatus(failedPayload);
 
         final ArgumentCaptor<Order> txCaptor = ArgumentCaptor.forClass(Order.class);
-        verify(orderService).saveDomain(txCaptor.capture());
+        verify(orderService).transact(txCaptor.capture());
         assertThat(txCaptor.getValue().getStatus()).isEqualTo(Order.OrderStatus.FAILED);
 
         // Then - verify transaction was created with failed status
         final ArgumentCaptor<PaymentTransaction> transactionArgumentCaptor = ArgumentCaptor.forClass(PaymentTransaction.class);
-        verify(paymentTransactionService).saveDomain(transactionArgumentCaptor.capture());
+        verify(paymentTransactionService).transact(transactionArgumentCaptor.capture());
         assertThat(transactionArgumentCaptor.getValue().getStatus()).isEqualTo(PaymentTransaction.TransactionStatus.FAILED);
     }
 
     @Test
-    void testProcessWebhook_LinksToExistingReference() {
+    void testProcessPaymentStatus_LinksToExistingReference() {
 
         final Order order = new Order();
         order.setId(ORDER_ID);
@@ -277,11 +277,11 @@ class PaymentProcessServiceTest {
         order.setReferenceId(reference.getId());
 
         when(orderService.find(successPayload)).thenReturn(order);
-        paymentProcessService.processWebhook(successPayload);
+        paymentProcessService.processPaymentStatus(successPayload);
 
         // Then - verify order was linked to reference
         final ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
-        verify(orderService, atLeastOnce()).saveDomain(orderCaptor.capture());
+        verify(orderService, atLeastOnce()).transact(orderCaptor.capture());
 
         final Order capturedOrder = orderCaptor.getValue();
         assertThat(capturedOrder.getReferenceId()).isEqualTo(reference.getId());

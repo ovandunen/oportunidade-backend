@@ -22,7 +22,7 @@ public class PaymentTransactionService extends DomainService<PaymentTransaction,
     }
 
     @Override
-    public void saveDomain(PaymentTransaction transaction) {
+    public void transact(PaymentTransaction transaction) {
         try {
             validateDomain(transaction);
         } catch (DomainNotCreatedException e) {

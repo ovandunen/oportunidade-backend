@@ -61,7 +61,7 @@ public class WebhookEventServiceFacade {
             event.setCreatedDate(Instant.now());
             event.setUpdatedDate(Instant.now());
             
-            webhookEventService.saveDomain(event);
+            webhookEventService.transact(event);
             LOG.infof("Created webhook event: %s for transaction: %s", 
                     event.getId(), payload.getId());
             

@@ -1,11 +1,15 @@
-package solutions.envision.odoo;
+package solutions.envision.odoo.document;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 
 @Entity
 @Table(name = "document_access_audit")
+@Getter
+@Setter
 public class DocumentAccessAudit {
 
     @Id

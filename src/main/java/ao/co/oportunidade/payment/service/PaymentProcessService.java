@@ -41,7 +41,7 @@ public class PaymentProcessService extends
      * @param payload the webhook payload
      */
     @Transactional
-    public void processWebhook(final AppyPayWebhookPayload payload) throws RuntimeException {
+    public void processPaymentStatus(final AppyPayWebhookPayload payload) throws RuntimeException {
         LOG.infof("Processing webhook for transaction: %s, status: %s", 
                 payload.getId(), payload.getStatus());
 
@@ -75,7 +75,7 @@ public class PaymentProcessService extends
         final OrderService orderService = getSupportingDomainService();
         final Order order = orderService.find(payload);
         order.setStatus(Order.OrderStatus.PAID);
-        orderService.saveDomain(order);
+        orderService.transact(order);
 
         final PaymentTransaction paymentTransaction = createPaymentTransaction(payload, order, PaymentTransaction.TransactionStatus.SUCCESS);
         odooPaymentService.sendPaymentToOdoo(paymentTransaction);
@@ -89,7 +89,7 @@ public class PaymentProcessService extends
 
         final Order order = getSupportingDomainService().find(payload);
         order.setStatus(Order.OrderStatus.PENDING);
-        getSupportingDomainService().saveDomain(order);
+        getSupportingDomainService().transact(order);
 
         final PaymentTransaction paymentTransaction = createPaymentTransaction(payload, order, PaymentTransaction.TransactionStatus.PENDING);
         odooPaymentService.sendPaymentToOdoo(paymentTransaction);
@@ -102,14 +102,14 @@ public class PaymentProcessService extends
 
         final Order order = getSupportingDomainService().find(payload);
         order.setStatus(Order.OrderStatus.FAILED);
-        getSupportingDomainService().saveDomain(order);
+        getSupportingDomainService().transact(order);
 
         final PaymentTransaction transaction = createPaymentTransaction(
                 payload, order, PaymentTransaction.TransactionStatus.FAILED);
         
         if (payload.getResponseStatus() != null) {
             transaction.setErrorMessage(payload.getResponseStatus().getMessage());
-            getMainDomainService().saveDomain(transaction);
+            getMainDomainService().transact(transaction);
         }
         odooPaymentService.sendPaymentToOdoo(transaction);
 
@@ -125,7 +125,7 @@ public class PaymentProcessService extends
         if (existingOrder.isPresent()) {
             final                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      Order order = existingOrder.get();
             order.setStatus(Order.OrderStatus.CANCELLED);
-            getSupportingDomainService().saveDomain(order);
+            getSupportingDomainService().transact(order);
 
             final PaymentTransaction paymentTransaction = createPaymentTransaction(payload, order, PaymentTransaction.TransactionStatus.CANCELLED);
             odooPaymentService.sendPaymentToOdoo(paymentTransaction);
@@ -161,7 +161,7 @@ public class PaymentProcessService extends
             transaction.setReferenceEntity(refInfo.getEntity());
         }
 
-        getMainDomainService().saveDomain(transaction);
+        getMainDomainService().transact(transaction);
         LOG.infof("Created payment transaction: %s for order: %s",
                 transaction.getId(), order.getId());
 

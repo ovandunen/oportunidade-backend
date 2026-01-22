@@ -1,14 +1,19 @@
-package solutions.envision.odoo.resource;
+package solutions.envision.odoo.document.resource;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 import org.jboss.logging.Logger;
-import solutions.envision.odoo.service.document.CandidateInfo;
-import solutions.envision.odoo.service.document.DocumentAccessTokenService;
-import solutions.envision.odoo.service.document.OdooDocumentClient;
+import solutions.envision.odoo.document.OdooDocumentClient;
+import solutions.envision.odoo.document.entity.DocumentLinkRequest;
+import solutions.envision.odoo.document.entity.TokenValidationResult;
+import solutions.envision.odoo.document.service.DocumentAccessTokenService;
+import solutions.envision.odoo.dto.CandidateInfo;
+import solutions.envision.odoo.dto.OdooDocument;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Path("/api/documents")
 @Produces(MediaType.APPLICATION_JSON)
@@ -16,10 +21,16 @@ public class DocumentAccessResource {
 
     private static final Logger LOG = Logger.getLogger(DocumentAccessResource.class);
 
-    @Inject
+    public DocumentAccessResource(DocumentAccessTokenService tokenService,
+                                  OdooDocumentClient odooClient,
+                                  @Context HttpHeaders headers) {
+        this.tokenService = tokenService;
+        this.odooClient = odooClient;
+        this.headers = headers;
+    }
+
     DocumentAccessTokenService tokenService;
 
-    @Inject
     OdooDocumentClient odooClient;
 
     @Context
@@ -32,7 +43,7 @@ public class DocumentAccessResource {
     @Path("/candidates")
     public Response getAccessibleCandidates(@QueryParam("token") String token) {
 
-        TokenValidationResult validation = tokenService.validateToken(token);
+        final TokenValidationResult validation = tokenService.validateToken(token);
 
         if (!validation.valid()) {
             return Response.status(Response.Status.FORBIDDEN)
@@ -41,12 +52,12 @@ public class DocumentAccessResource {
         }
 
         try {
-            List<Integer> candidateIds = validation.token().getCandidateIds();
-            List<CandidateSummary> candidates = candidateIds.stream()
+            final List<Integer> candidateIds = validation.token().getCandidateIds();
+            final List<CandidateSummary> candidates = candidateIds.stream()
                     .map(id -> {
                         try {
-                            CandidateInfo info = odooClient.getCandidateInfo(id);
-                            List<OdooDocument> docs = odooClient.getCandidateDocuments(id);
+                                                                                                                      CandidateInfo info = odooClient.getCandidateInfo(id);
+                            final List<OdooDocument> docs = odooClient.getCandidateDocuments(id);
 
                             return new CandidateSummary(
                                     info.id(),
@@ -91,7 +102,7 @@ public class DocumentAccessResource {
             @PathParam("documentId") Integer documentId,
             @QueryParam("token") String token) {
 
-        TokenValidationResult validation = tokenService.validateToken(token);
+        final TokenValidationResult validation = tokenService.validateToken(token);
 
         if (!validation.valid()) {
             return Response.status(Response.Status.FORBIDDEN)
@@ -108,11 +119,11 @@ public class DocumentAccessResource {
 
         try {
             // Fetch document from Odoo
-            byte[] documentData = odooClient.downloadDocument(documentId);
+            final byte[] documentData = odooClient.downloadDocument(documentId);
 
             // Get document metadata for filename
-            List<OdooDocument> docs = odooClient.getCandidateDocuments(candidateId);
-            OdooDocument doc = docs.stream()
+            final List<OdooDocument> docs = odooClient.getCandidateDocuments(candidateId);
+            final OdooDocument doc = docs.stream()
                     .filter(d -> d.id().equals(documentId))
                     .findFirst()
                     .orElseThrow(() -> new NotFoundException("Document not found"));
@@ -122,6 +133,7 @@ public class DocumentAccessResource {
             if (ipAddress == null) {
                 ipAddress = headers.getHeaderString("X-Real-IP");
             }
+
             tokenService.recordAccess(token, candidateId, documentId, ipAddress);
 
             LOG.info(String.format("Document %d downloaded by employer %s",
@@ -148,7 +160,7 @@ public class DocumentAccessResource {
     public Response generateDownloadLink(DocumentLinkRequest request) {
 
         // Validate master token
-        TokenValidationResult validation = tokenService.validateToken(request.masterToken());
+        final TokenValidationResult validation = tokenService.validateToken(request.masterToken());
 
         if (!validation.valid()) {
             return Response.status(Response.Status.FORBIDDEN)
@@ -163,7 +175,7 @@ public class DocumentAccessResource {
         }
 
         // Generate single-use token
-        String documentToken = tokenService.generateDocumentToken(
+        final String documentToken = tokenService.generateDocumentToken(
                 validation.token().getEmployerId(),
                 request.candidateId(),
                 request.documentId()
@@ -179,7 +191,4 @@ public class DocumentAccessResource {
     }
 }
 
-// DTOs
-record CandidateSummary(Integer id, String name, int documentCount, List<DocumentSummary> documents) {}
 record DocumentSummary(Integer id, String name, String mimetype, Integer fileSize) {}
-record DocumentLinkRequest(String masterToken, Integer candidateId, Integer documentId) {}
