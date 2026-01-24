@@ -157,7 +157,7 @@ public class DocumentAccessResource {
      */
     @POST
     @Path("/generate-link")
-    public Response generateDownloadLink(DocumentLinkRequest request) {
+    public Response generateDownloadLink(final DocumentLinkRequest request) {
 
         // Validate master token
         final TokenValidationResult validation = tokenService.validateToken(request.masterToken());
@@ -181,7 +181,7 @@ public class DocumentAccessResource {
                 request.documentId()
         );
 
-        String downloadUrl = String.format("/api/documents/download/%d/%d?token=%s",
+        final String downloadUrl = String.format("/api/documents/download/%d/%d?token=%s",
                 request.candidateId(), request.documentId(), documentToken);
 
         return Response.ok(Map.of(
