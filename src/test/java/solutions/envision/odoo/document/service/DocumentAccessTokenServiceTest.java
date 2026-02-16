@@ -95,12 +95,12 @@ public class DocumentAccessTokenServiceTest {
     @TestTransaction
     public void testGenerateDocumentToken_CreatesTokenAndLog() {
         // Given
-        String employerId = "EMP-001";
-        Integer candidateId = 123;
-        Integer documentId = 456;
+        final String employerId = "EMP-001";
+        final Integer candidateId = 123;
+        final Integer documentId = 456;
 
         // When
-        String token = service.generateDocumentToken(
+        final String token = service.generateDocumentToken(
                 employerId,
                 candidateId,
                 documentId

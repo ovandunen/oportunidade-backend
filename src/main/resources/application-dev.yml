@@ -69,5 +69,6 @@ smallrye:
             key:
               location: ${PATH_TO_PRIVATE_KEY_PM}
 
+
 jwt:
   secret: ${JWT_SECRET}
