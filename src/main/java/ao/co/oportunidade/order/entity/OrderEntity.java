@@ -1,6 +1,7 @@
 package ao.co.oportunidade.order.entity;
 
 import solutions.envision.entity.DomainEntity;
+import ao.co.oportunidade.order.model.PackageType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -101,7 +102,7 @@ public class OrderEntity extends DomainEntity {
      */
     @Column(name = "package_type", length = 50)
     @Enumerated(EnumType.STRING)
-    private String packageType;
+    private PackageType packageType;
     
     /**
      * Payment reference code from AppyPay webhook.

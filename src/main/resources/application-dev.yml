@@ -1,74 +1,68 @@
+# Development Profile Configuration
+# This file is automatically used when running in dev mode (./mvnw quarkus:dev)
+# Override with environment variables or system properties as needed
+
 quarkus:
+  # Database Configuration - Development
   datasource:
-    db-kind: h2
-    username: sa
-    password: ${SA_PWD}
+    db-kind: postgresql
+    username: postgres
+    password: postgres
     jdbc:
-      url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-
-  hibernate-orm:
-    log:
-      sql: true
-    sql-load-script: no-file
-
+      url: jdbc:postgresql://localhost:5432/odoo_payments
+      driver: org.postgresql.Driver
+  
+  # Hibernate Configuration - Development
+  hibernate:
+    orm:
+      log:
+        sql: true
+      sql-load-script: no-file
+  
+  # Flyway Configuration - Development
   flyway:
     migrate-at-start: true
     baseline-on-migrate: true
     baseline-version: 0
 
-  http:
-    port: 8080
-    cors:
-      enabled: true
-      origins: "*"
-
-  log:
-    category:
-      "ao.co.oportunidade.webhook":
-        level: DEBUG
-    console:
-      format: "%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{3.}] (%t) %s%e%n"
-
-  smallrye-health:
-    ui:
-      enable: true
-
-
-  swagger-ui:
-    enable: true
-    always-include: true
-
-webhook:
-  max-retry-count: ${WEBHOOK_MAX_RETRY:3}
-  retry-delay-seconds: ${WEBHOOK_RETRY_DELAY:60}
-  secret: ${WEBHOOK_SECRET:}
-
-"odoo-api/mp-rest/url": http://localhost:8000
-
+# Odoo Configuration - Development
 odoo:
-  webhook:
-    key: ${ODOO_WEBHOOK_KEY}
-    url: ${ODOO_WEBHOOK_URL}
+  url: http://localhost:8069
+  database: odoo_dev
+  username: admin
+  password: admin
+  timeout: 30000
+  max-retries: 3
 
-mp:
-  messaging:
-    incoming:
-      webhook-events-in:
-        connector: smallrye-in-memory
-    outgoing:
-      webhook-events-out:
-        connector: smallrye-in-memory
-  jwt:
-    verify:
-      publickey:
-        location: ${PATH_TO_PUBLIC_KEY_PM}
-
-smallrye:
-        jwt:
-          sign:
-            key:
-              location: ${PATH_TO_PRIVATE_KEY_PM}
-
-
+# JWT Configuration - Development
 jwt:
-  secret: ${JWT_SECRET}
+  private-key-file: src/main/resources/privateKey.pem
+  issuer: recruiting-agency-backend
+
+# Application Configuration - Development
+app:
+  base-url: http://localhost:8080
+  environment: development
+
+# Retry Configuration
+retry:
+  max-attempts: 5
+  initial-delay-ms: 1000
+  max-delay-ms: 16000
+
+# Slack Configuration - Disabled in dev
+slack:
+  webhook-url: http://localhost:9999/fake-slack
+  channel: #dev-alerts
+  enabled: false
+
+# Logging - Development
+"%dev":
+  quarkus:
+    log:
+      level: DEBUG
+      category:
+        "ao.co.oportunidade": DEBUG
+        "solutions.envision": DEBUG
+        "org.flywaydb": INFO
+        "org.hibernate": INFO

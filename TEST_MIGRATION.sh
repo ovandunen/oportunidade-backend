@@ -4,6 +4,7 @@
 
 set -e
 
+
 echo "======================================"
 echo "Phase 1 Migration Verification Script"
 echo "======================================"
@@ -17,7 +18,7 @@ NC='\033[0m' # No Color
 
 # Check if PostgreSQL is running
 echo "1. Checking PostgreSQL..."
-if psql -U postgres -d odoo_payments_db -c "SELECT version();" > /dev/null 2>&1; then
+if psql -h localhost -U postgres  -d odoo_payments -c "SELECT version();" > /dev/null 2>&1; then
     echo -e "${GREEN}✓ PostgreSQL is running${NC}"
 else
     echo -e "${RED}✗ Cannot connect to PostgreSQL${NC}"
@@ -29,14 +30,14 @@ echo ""
 
 # Check Flyway schema history
 echo "2. Checking Flyway migration history..."
-MIGRATION_COUNT=$(psql -U postgres -d odoo_payments -t -c "SELECT COUNT(*) FROM flyway_schema_history WHERE success = true;" 2>/dev/null || echo "0")
+MIGRATION_COUNT=$(psql -h localhost -U postgres -d odoo_payments -t -c "SELECT COUNT(*) FROM flyway_schema_history WHERE success = true;" 2>/dev/null || echo "0")
 echo "   Migrations applied: $MIGRATION_COUNT"
 
 if [ "$MIGRATION_COUNT" -ge "1" ]; then
     echo -e "${GREEN}✓ Flyway migrations found${NC}"
     echo ""
     echo "   Migration details:"
-    psql -U postgres -d odoo_payments -c "SELECT version, description, installed_on FROM flyway_schema_history ORDER BY installed_rank;"
+    psql -h localhost -U postgres  -d odoo_payments -c "SELECT version, description, installed_on FROM flyway_schema_history ORDER BY installed_rank;"
 else
     echo -e "${YELLOW}⚠ No migrations found - will run on first startup${NC}"
 fi
@@ -48,7 +49,7 @@ echo "3. Checking for Phase 1 tables..."
 
 check_table() {
     TABLE_NAME=$1
-    if psql -U postgres -d odoo_payments -t -c "SELECT to_regclass('$TABLE_NAME');" | grep -q "$TABLE_NAME"; then
+    if psql -h localhost -U postgres  -d odoo_payments -t -c "SELECT to_regclass('$TABLE_NAME');" | grep -q "$TABLE_NAME"; then
         echo -e "${GREEN}✓ Table exists: $TABLE_NAME${NC}"
         return 0
     else
@@ -69,7 +70,7 @@ echo "4. Checking orders table columns..."
 
 check_column() {
     COLUMN_NAME=$1
-    if psql -U postgres -d odoo_payments -t -c "\d orders" | grep -q "$COLUMN_NAME"; then
+    if psql -h localhost -U postgres  -d odoo_payments  -t -c "\d orders" | grep -q "$COLUMN_NAME"; then
         echo -e "${GREEN}✓ Column exists: $COLUMN_NAME${NC}"
         return 0
     else
@@ -83,11 +84,10 @@ check_column "employer_email"
 check_column "package_type"
 check_column "reference_code"
 
-echo ""
 
 # Check for indexes
 echo "5. Checking indexes..."
-INDEX_COUNT=$(psql -U postgres -d odoo_payments -t -c "SELECT COUNT(*) FROM pg_indexes WHERE tablename IN ('employer_references', 'orders', 'order_candidates', 'order_odoo_documents');" 2>/dev/null || echo "0")
+INDEX_COUNT=$(psql -h localhost -U postgres  -d odoo_payments  -t -c "SELECT COUNT(*) FROM pg_indexes WHERE tablename IN ('employer_references', 'orders', 'order_candidates', 'order_odoo_documents');" 2>/dev/null || echo "0")
 echo "   Indexes found: $INDEX_COUNT"
 
 if [ "$INDEX_COUNT" -ge "9" ]; then
@@ -125,8 +125,8 @@ echo "Test Data Setup (Optional)"
 echo "======================================"
 echo ""
 echo "To insert a test employer reference, run:"
-echo ""
-echo "psql -U postgres -d odoo_payments <<EOF"
+echo 
+echo "psql -h localhost -U postgres -d odoo_payments <<EOF"
 echo "INSERT INTO employer_references (reference_code, employer_id, employer_email, company_name, created_at, is_active)"
 echo "VALUES ('TEST-REF-001', 'EMP-001', 'test@employer.com', 'Test Company', NOW(), true)"
 echo "ON CONFLICT (reference_code) DO NOTHING;"

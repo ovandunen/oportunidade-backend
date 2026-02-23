@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import solutions.envision.model.DomainNotCreatedException;
 
 import java.time.Instant;
@@ -59,13 +60,18 @@ public class WebhookEventService extends DomainService<WebhookEvent, WebhookEven
 
     /**
      * Check if a webhook has already been processed (idempotency check).
+     * Requires @Transactional so the repository can read committed data from
+     * a previous request — without a transaction context the EntityManager is
+     * unavailable and the check silently returns false, causing duplicate processing.
      *
      * @param appypayTransactionId the AppyPay transaction ID
      * @return true if already processed, false otherwise
      */
+    @Transactional
     public boolean isAlreadyProcessed(String appypayTransactionId) {
         return findByAppyPayTransactionId(appypayTransactionId)
-                .map(event -> event.getProcessingStatus() == WebhookEvent.ProcessingStatus.PROCESSED ||
+                .map(event -> event.getProcessingStatus() == WebhookEvent.ProcessingStatus.RECEIVED ||
+                        event.getProcessingStatus() == WebhookEvent.ProcessingStatus.PROCESSED ||
                         event.getProcessingStatus() == WebhookEvent.ProcessingStatus.PROCESSING)
                 .orElse(false);
     }

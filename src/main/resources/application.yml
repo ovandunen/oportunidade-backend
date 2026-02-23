@@ -32,14 +32,12 @@ quarkus:
     # Hibernate Configuration
   hibernate:
     orm:
-      schema-generation:
-        scripts:
-          generation: drop-and-create
-          generation-target: database
-
-    log:
-      sql: true
-    sql-load-script: no-file
+      # Don't let Hibernate manage schema - Flyway does this
+      database:
+        generation: none
+      log:
+        sql: true
+      sql-load-script: no-file
 
   # Flyway Configuration
   flyway:
