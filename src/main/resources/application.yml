@@ -32,14 +32,12 @@ quarkus:
     # Hibernate Configuration
   hibernate:
     orm:
-      schema-generation:
-        scripts:
-          generation: drop-and-create
-          generation-target: database
-
-    log:
-      sql: true
-    sql-load-script: no-file
+      # Don't let Hibernate manage schema - Flyway does this
+      database:
+        generation: none
+      log:
+        sql: true
+      sql-load-script: no-file
 
   # Flyway Configuration
   flyway:
@@ -79,12 +77,20 @@ webhook:
   retry-delay-seconds: ${WEBHOOK_RETRY_DELAY:60}
   secret: ${WEBHOOK_SECRET:}
 
+# Odoo REST API Client Configuration
 odoo-api/mp-rest/url: http://localhost:8000
 
+# Odoo XML-RPC Configuration (for document access)
 odoo:
+  url: ${ODOO_URL:http://localhost:8069}
+  database: ${ODOO_DATABASE:odoo_dev}
+  username: ${ODOO_USERNAME:admin}
+  password: ${ODOO_PASSWORD:admin}
+  timeout: ${ODOO_TIMEOUT:30000}
+  max-retries: ${ODOO_MAX_RETRIES:3}
   webhook:
-    key: ${ODOO_WEBHOOK_KEY}
-    url: ${ODOO_WEBHOOK_URL}
+    key: ${ODOO_WEBHOOK_KEY:}
+    url: ${ODOO_WEBHOOK_URL:}
 
 # Reactive Messaging Configuration for Webhook Processing
 mp:
@@ -96,12 +102,40 @@ mp:
         webhook-events-out:
           connector: smallrye-in-memory
 
+# JWT Token Configuration
+jwt:
+  private-key-file: ${JWT_PRIVATE_KEY_FILE:src/main/resources/privateKey.pem}
+  issuer: ${JWT_ISSUER:recruiting-agency-backend}
+  expiration:
+    basic: ${TOKEN_EXPIRATION_BASIC:24}
+    standard: ${TOKEN_EXPIRATION_STANDARD:48}
+    premium: ${TOKEN_EXPIRATION_PREMIUM:72}
+    enterprise: ${TOKEN_EXPIRATION_ENTERPRISE:168}
+
+# Retry Configuration
+retry:
+  max-attempts: ${RETRY_MAX_ATTEMPTS:5}
+  initial-delay-ms: ${RETRY_INITIAL_DELAY_MS:1000}
+  max-delay-ms: ${RETRY_MAX_DELAY_MS:16000}
+
+# Slack Configuration
+slack:
+  webhook-url: ${SLACK_WEBHOOK_URL:}
+  channel: ${SLACK_CHANNEL:#payment-alerts}
+  enabled: ${SLACK_ENABLED:false}
+
+# Application Configuration
+app:
+  base-url: ${BASE_URL:http://localhost:8080}
+  environment: ${ENVIRONMENT:development}
+
+# Document Access Configuration (legacy - to be removed)
 document:
-          access:
-                  duration:
-                            hours: 72
-          max:
-                downloads:
-                            basic: 10
-                            standard: 50
-                            premium:  200
+  access:
+    duration:
+      hours: 72
+  max:
+    downloads:
+      basic: 10
+      standard: 50
+      premium: 200

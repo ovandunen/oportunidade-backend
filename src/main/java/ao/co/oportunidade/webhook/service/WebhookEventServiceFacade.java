@@ -48,23 +48,23 @@ public class WebhookEventServiceFacade {
     public WebhookEvent createWebhookEvent(AppyPayWebhookPayload payload) {
         try {
             String payloadJson = objectMapper.writeValueAsString(payload);
-            
+
             WebhookEvent event = new WebhookEvent();
             event.setId(UUID.randomUUID());
             event.setAppypayTransactionId(payload.getId());
             event.setMerchantTransactionId(payload.getMerchantTransactionId());
-            event.setWebhookType(payload.getType());
+            event.setWebhookType(payload.getType() != null ? payload.getType() : "PAYMENT");
             event.setProcessingStatus(WebhookEvent.ProcessingStatus.RECEIVED);
             event.setPayload(payloadJson);
             event.setReceivedAt(Instant.now());
             event.setRetryCount(0);
             event.setCreatedDate(Instant.now());
             event.setUpdatedDate(Instant.now());
-            
+
             webhookEventService.transact(event);
-            LOG.infof("Created webhook event: %s for transaction: %s", 
+            LOG.infof("Created webhook event: %s for transaction: %s",
                     event.getId(), payload.getId());
-            
+
             return event;
         } catch (JsonProcessingException e) {
             LOG.errorf(e, "Failed to serialize webhook payload: %s", payload.getId());

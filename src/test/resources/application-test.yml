@@ -1,0 +1,83 @@
+# =============================================================================
+# TEST PROFILE CONFIGURATION
+# =============================================================================
+
+quarkus:
+  datasource:
+    db-kind: postgresql
+    devservices:
+      enabled: true          # Quarkus auto-starts a Postgres Testcontainer
+
+  hibernate-orm:
+    database:
+      generation: drop-and-create
+    log:
+      sql: false
+
+  flyway:
+    migrate-at-start: false
+
+  log:
+    level: INFO
+    category:
+      "ao.co.oportunidade":
+        level: DEBUG
+      "solutions.envision":
+        level: DEBUG
+      "io.smallrye.faulttolerance":
+        level: WARN
+
+jwt:
+  issuer: test-issuer
+  expiration:
+    basic: 1
+    standard: 2
+    premium: 3
+    enterprise: 7
+
+smallrye:
+  jwt:
+    sign:
+      key:
+        location: classpath:privateKeyTest.pem
+    verify:
+      publickey:
+        location: classpath:publicKeyTest.pem
+
+# Odoo - points to WireMock server #1 (port 9090)
+# No credentials needed - WireMock does not authenticate
+odoo:
+  url: http://localhost:9090
+  timeout: 5000
+  max-retries: 2
+  webhook:
+    key: test-webhook-key
+    url: http://localhost:8081/test-webhook
+
+# AppyPay - points to WireMock server #2 (port 9091)
+appypay:
+  base-url: http://localhost:9091
+
+# Hardcoded dummy - AppyPay signature validation not enforced in tests
+webhook:
+  secret: test-webhook-secret
+  max-retry-count: 2
+  retry-delay-seconds: 1
+
+app:
+  base-url: http://localhost:8081
+  environment: test
+
+retry:
+  max-attempts: 2
+  initial-delay-ms: 100
+  max-delay-ms: 500
+
+mp:
+  messaging:
+    outgoing:
+      webhook-events-out:
+        connector: smallrye-in-memory
+    incoming:
+      webhook-events-in:
+        connector: smallrye-in-memory

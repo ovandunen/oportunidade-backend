@@ -14,16 +14,16 @@ import java.util.*;
 @ApplicationScoped
 public class OdooDocumentClient {
 
-    @ConfigProperty(name = "odoo.webhook.url")
+    @ConfigProperty(name = "odoo.url")
     String odooUrl;
 
-    @ConfigProperty(name = "quarkus.datasource.db-kind")
+    @ConfigProperty(name = "odoo.database")
     String database;
 
-    @ConfigProperty(name = "quarkus.datasource.username")
+    @ConfigProperty(name = "odoo.username")
     String username;
 
-    @ConfigProperty(name = "quarkus.datasource.password")
+    @ConfigProperty(name = "odoo.password")
     String password;
 
     private XmlRpcClient modelsClient;
