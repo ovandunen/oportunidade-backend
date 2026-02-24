@@ -101,6 +101,7 @@ mp:
       outgoing:
         webhook-events-out:
           connector: smallrye-in-memory
+          destination: webhook-events-in
 
 # JWT Token Configuration
 jwt:

@@ -3,6 +3,9 @@
 # =============================================================================
 
 quarkus:
+  rest-client:
+    odoo-api:
+      url: http://localhost:9090
   datasource:
     db-kind: postgresql
     devservices:
@@ -29,12 +32,15 @@ quarkus:
 
 jwt:
   issuer: test-issuer
+  private-key-file: classpath:privateKeyTest.pem
+  secret: test-jwt-secret-for-document-access-token-service
   expiration:
     basic: 1
     standard: 2
     premium: 3
     enterprise: 7
 
+# SmallRye JWT - required for Jwt.issuer().sign()
 smallrye:
   jwt:
     sign:
@@ -78,6 +84,7 @@ mp:
     outgoing:
       webhook-events-out:
         connector: smallrye-in-memory
+        destination: webhook-events-in
     incoming:
       webhook-events-in:
         connector: smallrye-in-memory
