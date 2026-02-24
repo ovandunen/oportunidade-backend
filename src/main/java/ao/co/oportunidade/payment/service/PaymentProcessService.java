@@ -90,7 +90,7 @@ public class PaymentProcessService extends
         LOG.infof("Handling successful payment: %s", payload.getId());
 
         final OrderService orderService = getSupportingDomainService();
-        final Order order = orderService.find(payload);
+        final Order order = orderService.findOrCreateFromWebhook(payload, Order.OrderStatus.PENDING);
 
         // Phase 1 Enhancement: Enrich order with employer and document mapping
         enrichOrderWithEmployerInfo(order, payload);
@@ -290,7 +290,8 @@ public class PaymentProcessService extends
     private void handlePendingPayment(final AppyPayWebhookPayload payload) {
         LOG.infof("Handling pending payment: %s", payload.getId());
 
-        final Order order = getSupportingDomainService().find(payload);
+        final Order order = getSupportingDomainService()
+                .findOrCreateFromWebhook(payload, Order.OrderStatus.PENDING);
         order.setStatus(Order.OrderStatus.PENDING);
         getSupportingDomainService().transact(order);
 
@@ -303,7 +304,8 @@ public class PaymentProcessService extends
     private void handleFailedPayment(final AppyPayWebhookPayload payload) {
         LOG.infof("Handling failed payment: %s", payload.getId());
 
-        final Order order = getSupportingDomainService().find(payload);
+        final Order order = getSupportingDomainService()
+                .findOrCreateFromWebhook(payload, Order.OrderStatus.FAILED);
         order.setStatus(Order.OrderStatus.FAILED);
         getSupportingDomainService().transact(order);
 

@@ -30,15 +30,68 @@ public class OrderService extends DomainService<Order, OrderRepository> {
     ReferenceService referenceService;
 
 
-    public  Order find(AppyPayWebhookPayload payload) {
-
+    public Order find(AppyPayWebhookPayload payload) {
         final Optional<Order> existingOrder =
                 findByMerchantTransactionId(payload.getMerchantTransactionId());
-
         return existingOrder.orElse(null);
     }
 
-    public  Order create(AppyPayWebhookPayload payload, Order.OrderStatus defaultStatus) {
+    /**
+     * Find existing order or create one from webhook payload.
+     * Used when processing payment webhooks where the order may not exist yet.
+     * Does not require Reference (referenceId may be null); EmployerReference
+     * lookup happens during enrichment in PaymentProcessService.
+     *
+     * @param payload the webhook payload
+     * @param defaultStatus initial status for newly created orders
+     * @return the order (existing or newly created and persisted)
+     */
+    @Transactional
+    public Order findOrCreateFromWebhook(AppyPayWebhookPayload payload, Order.OrderStatus defaultStatus) {
+        Optional<Order> existing = findByMerchantTransactionId(payload.getMerchantTransactionId());
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+        Order order = createFromWebhook(payload, defaultStatus);
+        transact(order);
+        return order;
+    }
+
+    /**
+     * Create a new order from webhook payload without requiring Reference.
+     * Used for payment flow where EmployerReference provides employer lookup.
+     * The returned order is not persisted; call transact() to persist.
+     */
+    public Order createFromWebhook(AppyPayWebhookPayload payload, Order.OrderStatus defaultStatus) {
+        final Order order = new Order();
+        order.setId(UUID.randomUUID());
+        order.setMerchantTransactionId(payload.getMerchantTransactionId());
+        order.setAmount(payload.getAmount());
+        order.setCurrency(payload.getCurrency());
+        order.setStatus(defaultStatus);
+        order.setCreatedDate(Instant.now());
+        order.setUpdatedDate(Instant.now());
+
+        if (payload.getCustomer() != null) {
+            final CustomerInfo customer = payload.getCustomer();
+            order.setCustomerName(customer.getName());
+            order.setCustomerEmail(customer.getEmail());
+            order.setCustomerPhone(customer.getPhone());
+        }
+
+        // Optionally link to Reference if it exists (legacy flow)
+        if (payload.getReference() != null) {
+            Reference reference = referenceService.getReferenceByNumber(
+                    payload.getReference().getReferenceNumber());
+            if (reference != null) {
+                order.setReferenceId(reference.getId());
+            }
+        }
+
+        return order;
+    }
+
+    public Order create(AppyPayWebhookPayload payload, Order.OrderStatus defaultStatus) {
 
         // Create new order
         final Order order = new Order();
