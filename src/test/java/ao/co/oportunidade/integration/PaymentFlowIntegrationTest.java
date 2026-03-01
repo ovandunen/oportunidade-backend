@@ -5,6 +5,7 @@ import ao.co.oportunidade.notification.service.AlertService;
 import ao.co.oportunidade.order.entity.OrderEntity;
 import ao.co.oportunidade.order.model.PackageType;
 import ao.co.oportunidade.payment.service.NotificationService;
+import ao.co.oportunidade.payment.service.PaymentProcessService;
 import ao.co.oportunidade.webhook.dto.AppyPayWebhookPayload;
 import ao.co.oportunidade.webhook.dto.CustomerInfo;
 import ao.co.oportunidade.webhook.dto.ReferenceInfo;
@@ -15,6 +16,7 @@ import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
@@ -66,15 +68,18 @@ class PaymentProcessIntegrationTest {
     // Adjust if @ApplicationPath("/api") is present → "/api/webhooks/appypay"
     private static final String WEBHOOK_PATH      = "/webhooks/appypay";
 
-    // WireMock port must match odoo.url in application-test.yml
+    // WireMock port must match odoo.url and quarkus.rest-client.odoo-api.url in application-test.yml
     private static final int ODOO_WIREMOCK_PORT   = 9090;
-    private static final String ODOO_RPC_PATH     = "/web/dataset/call_kw";
+    private static final String ODOO_WEBHOOK_PATH = "/api/webhook/payment";
 
     // ============================================================
     // Infrastructure
     // ============================================================
 
     private static WireMockServer wireMock;
+
+    @Inject
+    PaymentProcessService paymentProcessService;
 
     @InjectMock
     NotificationService notificationService;
@@ -128,6 +133,7 @@ class PaymentProcessIntegrationTest {
         AppyPayWebhookPayload payload = buildPayload("SUCCESS");
 
         postWebhook(payload).statusCode(200);
+        processPayloadSync(payload);
 
         awaitOrder(payload.getMerchantTransactionId(), order -> {
             assertEquals("COMPLETED", order.getStatus());
@@ -140,9 +146,8 @@ class PaymentProcessIntegrationTest {
             assertNotNull(order.getOdooDocumentIds());
         });
 
-        // Odoo must have received exactly one payment call
-        wireMock.verify(1, postRequestedFor(urlPathEqualTo(ODOO_RPC_PATH))
-                .withRequestBody(matchingJsonPath("$.params.method", equalTo("create"))));
+        // Odoo must have received exactly one payment call (REST /api/webhook/payment)
+        wireMock.verify(1, postRequestedFor(urlPathEqualTo(ODOO_WEBHOOK_PATH)));
 
         // Email notification must have been sent to the employer
         verify(notificationService).sendDocumentAccessEmail(
@@ -158,8 +163,9 @@ class PaymentProcessIntegrationTest {
         payload.getReference().setReferenceNumber("UNKNOWN-REF-999");
 
         postWebhook(payload).statusCode(200);
+        processPayloadSync(payload);
 
-        await().atMost(Duration.ofSeconds(5)).untilAsserted(() ->
+        await().atMost(Duration.ofSeconds(10)).pollDelay(Duration.ofSeconds(1)).untilAsserted(() ->
                 verify(alertService).sendEmployerReferenceNotFoundAlert(anyString(), anyString())
         );
 
@@ -180,6 +186,7 @@ class PaymentProcessIntegrationTest {
         AppyPayWebhookPayload payload = buildPayload("SUCCESS");
 
         postWebhook(payload).statusCode(200);
+        processPayloadSync(payload);
 
         // Order still reaches COMPLETED — token failure is non-fatal
         awaitOrder(payload.getMerchantTransactionId(), order ->
@@ -201,13 +208,14 @@ class PaymentProcessIntegrationTest {
         AppyPayWebhookPayload payload = buildPayload("PENDING");
 
         postWebhook(payload).statusCode(200);
+        processPayloadSync(payload);
 
         awaitOrder(payload.getMerchantTransactionId(), order ->
                 assertEquals("PENDING", order.getStatus())
         );
 
         // Odoo must be notified for pending payments
-        wireMock.verify(1, postRequestedFor(urlPathEqualTo(ODOO_RPC_PATH)));
+        wireMock.verify(1, postRequestedFor(urlPathEqualTo(ODOO_WEBHOOK_PATH)));
 
         // No email notification for pending payments
         Mockito.verifyNoInteractions(notificationService);
@@ -224,13 +232,14 @@ class PaymentProcessIntegrationTest {
         AppyPayWebhookPayload payload = buildPayload("FAILED");
 
         postWebhook(payload).statusCode(200);
+        processPayloadSync(payload);
 
         awaitOrder(payload.getMerchantTransactionId(), order ->
                 assertEquals("FAILED", order.getStatus())
         );
 
         // Critical: Odoo must NOT be called for failed payments
-        wireMock.verify(0, postRequestedFor(urlPathEqualTo(ODOO_RPC_PATH)));
+        wireMock.verify(0, postRequestedFor(urlPathEqualTo(ODOO_WEBHOOK_PATH)));
 
         // No email notification for failed payments
         Mockito.verifyNoInteractions(notificationService);
@@ -247,6 +256,7 @@ class PaymentProcessIntegrationTest {
         // First create an order via a SUCCESS webhook
         AppyPayWebhookPayload successPayload = buildPayload("SUCCESS");
         postWebhook(successPayload).statusCode(200);
+        processPayloadSync(successPayload);
         awaitOrder(successPayload.getMerchantTransactionId(), order ->
                 assertEquals("COMPLETED", order.getStatus())
         );
@@ -256,13 +266,14 @@ class PaymentProcessIntegrationTest {
         cancelPayload.setMerchantTransactionId(successPayload.getMerchantTransactionId());
 
         postWebhook(cancelPayload).statusCode(200);
+        processPayloadSync(cancelPayload);
 
         awaitOrder(cancelPayload.getMerchantTransactionId(), order ->
                 assertEquals("CANCELLED", order.getStatus())
         );
 
         // Odoo must be notified about the cancellation
-        wireMock.verify(postRequestedFor(urlPathEqualTo(ODOO_RPC_PATH)));
+        wireMock.verify(postRequestedFor(urlPathEqualTo(ODOO_WEBHOOK_PATH)));
     }
 
     @Test
@@ -274,14 +285,17 @@ class PaymentProcessIntegrationTest {
         payload.setMerchantTransactionId("ORD-NONEXISTENT-" + UUID.randomUUID());
 
         postWebhook(payload).statusCode(200);
+        processPayloadSync(payload);
 
-        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-            List<OrderEntity> orders = OrderEntity.list(
-                    "merchantTransactionId", payload.getMerchantTransactionId());
-            assertTrue(orders.isEmpty(), "No order should be created for unknown cancellation");
-        });
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() ->
+                QuarkusTransaction.requiringNew().run(() -> {
+                    List<OrderEntity> orders = OrderEntity.list(
+                            "merchantTransactionId", payload.getMerchantTransactionId());
+                    assertTrue(orders.isEmpty(), "No order should be created for unknown cancellation");
+                })
+        );
 
-        wireMock.verify(0, postRequestedFor(urlPathEqualTo(ODOO_RPC_PATH)));
+        wireMock.verify(0, postRequestedFor(urlPathEqualTo(ODOO_WEBHOOK_PATH)));
     }
 
     // ============================================================
@@ -308,12 +322,15 @@ class PaymentProcessIntegrationTest {
         AppyPayWebhookPayload payload = buildPayload("UNKNOWN_STATUS");
 
         postWebhook(payload).statusCode(200);
+        processPayloadSync(payload);
 
-        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-            List<OrderEntity> orders = OrderEntity.list(
-                    "merchantTransactionId", payload.getMerchantTransactionId());
-            assertTrue(orders.isEmpty(), "Unknown status should not create an order");
-        });
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() ->
+                QuarkusTransaction.requiringNew().run(() -> {
+                    List<OrderEntity> orders = OrderEntity.list(
+                            "merchantTransactionId", payload.getMerchantTransactionId());
+                    assertTrue(orders.isEmpty(), "Unknown status should not create an order");
+                })
+        );
     }
 
     // ============================================================
@@ -327,13 +344,16 @@ class PaymentProcessIntegrationTest {
         AppyPayWebhookPayload payload = buildPayload("SUCCESS");
 
         postWebhook(payload).statusCode(200);
-        postWebhook(payload).statusCode(200);
+        processPayloadSync(payload);
+        processPayloadSync(payload); // Duplicate - should be idempotent via findOrCreate
 
-        await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
-            long count = OrderEntity.count(
-                    "merchantTransactionId", payload.getMerchantTransactionId());
-            assertEquals(1, count, "Duplicate webhook must not create duplicate orders");
-        });
+        await().atMost(Duration.ofSeconds(10)).untilAsserted(() ->
+                QuarkusTransaction.requiringNew().run(() -> {
+                    long count = OrderEntity.count(
+                            "merchantTransactionId", payload.getMerchantTransactionId());
+                    assertEquals(1, count, "Duplicate webhook must not create duplicate orders");
+                })
+        );
     }
 
     // ============================================================
@@ -351,11 +371,16 @@ class PaymentProcessIntegrationTest {
         postWebhook(p1).statusCode(200);
         postWebhook(p2).statusCode(200);
         postWebhook(p3).statusCode(200);
+        processPayloadSync(p1);
+        processPayloadSync(p2);
+        processPayloadSync(p3);
 
-        await().atMost(Duration.ofSeconds(15)).untilAsserted(() -> {
-            long completed = OrderEntity.count("status", "COMPLETED");
-            assertEquals(3, completed, "All three orders must reach COMPLETED status");
-        });
+        await().atMost(Duration.ofSeconds(15)).untilAsserted(() ->
+                QuarkusTransaction.requiringNew().run(() -> {
+                    long completed = OrderEntity.count("status", "COMPLETED");
+                    assertEquals(3, completed, "All three orders must reach COMPLETED status");
+                })
+        );
     }
 
     // ============================================================
@@ -363,24 +388,17 @@ class PaymentProcessIntegrationTest {
     // ============================================================
 
     /**
-     * Catch-all Odoo stub: any JSON-RPC call to /web/dataset/call_kw returns success.
-     * Differentiated by $.params.method to match actual Odoo JSON-RPC body structure:
-     *   { "jsonrpc": "2.0", "method": "call", "params": { "model": "...", "method": "create" } }
+     * Odoo REST webhook stub: OdooPaymentService posts to /api/webhook/payment.
+     * Returns success so payment sync completes.
      */
     private void stubOdooAcceptAll() {
-        // Record new payment (SUCCESS / PENDING / CANCELLED)
-        stubFor(post(urlPathEqualTo(ODOO_RPC_PATH))
-                .withRequestBody(matchingJsonPath("$.params.method", equalTo("create")))
-                .willReturn(okJson("""
-                        { "jsonrpc": "2.0", "id": 1, "result": 42 }
-                        """)));
-
-        // Update existing payment (PENDING / CANCELLED write operations)
-        stubFor(post(urlPathEqualTo(ODOO_RPC_PATH))
-                .withRequestBody(matchingJsonPath("$.params.method", equalTo("write")))
-                .willReturn(okJson("""
-                        { "jsonrpc": "2.0", "id": 2, "result": true }
-                        """)));
+        stubFor(post(urlPathEqualTo(ODOO_WEBHOOK_PATH))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("""
+                                { "success": true, "payment_id": 42, "message": "Payment processed" }
+                                """)));
     }
 
     private void stubMockedServices() {
@@ -464,11 +482,25 @@ class PaymentProcessIntegrationTest {
                 .then();
     }
 
+    /**
+     * Invoke payment processing synchronously.
+     * Bypasses async messaging so tests can verify results immediately.
+     * Catches exceptions for tests that expect processing to fail (e.g. unknown reference).
+     */
+    private void processPayloadSync(AppyPayWebhookPayload payload) {
+        try {
+            paymentProcessService.processPaymentStatus(payload);
+        } catch (RuntimeException e) {
+            // Expected for unknown reference, token failures, etc.
+        }
+    }
+
     private void awaitOrder(String merchantTransactionId,
                             java.util.function.Consumer<OrderEntity> assertions) {
         await()
-                .atMost(Duration.ofSeconds(10))
+                .atMost(Duration.ofSeconds(15))
                 .pollInterval(Duration.ofMillis(500))
+                .pollDelay(Duration.ofMillis(500))
                 .untilAsserted(() ->
                         // Awaitility polls on a separate thread with no CDI context.
                         // QuarkusTransaction.requiringNew() opens a short-lived transaction

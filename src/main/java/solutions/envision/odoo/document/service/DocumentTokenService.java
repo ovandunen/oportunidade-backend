@@ -144,6 +144,10 @@ public class DocumentTokenService {
             throw new IllegalArgumentException("At least one candidate ID is required");
         }
         
+        if (order.getOdooDocumentIds() == null || order.getOdooDocumentIds().isEmpty()) {
+            throw new IllegalArgumentException("At least one Odoo document ID is required");
+        }
+        
         LOG.debugf("Order validation passed for order %s", order.getId());
     }
     

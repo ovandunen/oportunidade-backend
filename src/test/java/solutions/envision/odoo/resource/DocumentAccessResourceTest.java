@@ -1,7 +1,9 @@
 package solutions.envision.odoo.resource;
 
+import ao.co.oportunidade.document.service.DocumentAccessLogService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.InjectMock;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeAll;
@@ -36,6 +38,9 @@ class DocumentAccessResourceTest {
     HttpHeaders headers;
 
     @InjectMock
+    DocumentAccessLogService accessLogService;
+
+    @Inject
     DocumentAccessResource resource;
 
     final static String base64Part1 = "JVBERi0xLjYNJeLjz9MNCjExNTIgMCBvYmoNPDwvTGluZWFyaXplZCAxL0wgMzUzODI5L08gMTE1NC9FIDI5OTA0NS9OIDYvVCAzNTMzNzUvSCBbIDUwNSAyODJdPj4NZW5kb2JqDSAgICAgICAgICAgDQoxMTY5IDAgb2JqDTw8L0RlY29kZVBhcm1zPDwvQ29sdW1ucyA1L1ByZWRpY3RvciAxMj4+L0ZpbHRlci9GbGF0ZURlY29kZS9JRFs8QTFFMjk3RjgzQzBDRTE0Qjg4REVEQUJDMTJDNTIxNDI+PDlFOUQ2MTUwMDM1MTAxNEU5OEZFQjE4ODBGNzU2RjJBPl0vSW5kZXhbMTE1MiAzN10vSW5mbyAxMTUxIDAgUi9MZW5ndGggOTMvUHJldiAzNTMzNzYvUm9vdCAxMTUzIDAgUi9TaXplIDExODkvVHlwZS9YUmVmL1dbMSAzIDFdPj5zdHJlYW0NCmjeYmJkYBBgYGJg";

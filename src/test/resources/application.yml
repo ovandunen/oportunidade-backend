@@ -1,0 +1,4 @@
+# Base config for test profile - required for application-test.yml to load.
+# See: https://quarkus.io/guides/config-reference#profile-aware-configuration
+quarkus:
+  profile: test

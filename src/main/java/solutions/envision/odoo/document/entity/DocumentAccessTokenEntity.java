@@ -2,6 +2,7 @@ package solutions.envision.odoo.document.entity;
 
 
 import jakarta.persistence.*;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,7 +16,7 @@ import java.util.List;
 public class DocumentAccessTokenEntity {
 
     @Id
-    @Column(columnDefinition = "UUID", length = 36)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(length = 1000, unique = true, nullable = false)
@@ -25,7 +26,12 @@ public class DocumentAccessTokenEntity {
     private String employerId;
 
     @ElementCollection
-    @CollectionTable(name = "token_candidate_ids")
+    @CollectionTable(
+            name = "token_candidate_ids",
+            joinColumns = @JoinColumn(name = "documentaccesstokenentity_id")
+    )
+    @Column(name = "candidateids")
+    @OrderColumn(name = "candidateids_order")
     private List<Integer> candidateIds;
 
     @Column(name = "package_type")

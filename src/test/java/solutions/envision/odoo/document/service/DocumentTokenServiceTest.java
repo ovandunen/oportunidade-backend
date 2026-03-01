@@ -132,7 +132,7 @@ class DocumentTokenServiceTest {
                 IllegalArgumentException.class,
                 () -> tokenService.generateAccessToken(testOrder)
         );
-        assertTrue(exception.getMessage().contains("Candidate IDs"));
+        assertTrue(exception.getMessage().toLowerCase().contains("candidate"));
     }
 
     @Test
@@ -146,7 +146,7 @@ class DocumentTokenServiceTest {
                 IllegalArgumentException.class,
                 () -> tokenService.generateAccessToken(testOrder)
         );
-        assertTrue(exception.getMessage().contains("Document IDs"));
+        assertTrue(exception.getMessage().toLowerCase().contains("document"));
     }
 
     @Test

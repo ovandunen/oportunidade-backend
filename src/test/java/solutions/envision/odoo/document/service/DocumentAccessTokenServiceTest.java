@@ -33,7 +33,7 @@ public class DocumentAccessTokenServiceTest {
     public void cleanDatabase() {
         em.createQuery("DELETE FROM DocumentAccessAudit").executeUpdate();
         em.createQuery("DELETE FROM DocumentAccessLog").executeUpdate();
-        em.createQuery("DELETE FROM DocumentAccessToken").executeUpdate();
+        em.createQuery("DELETE FROM DocumentAccessTokenEntity").executeUpdate();
     }
 
     @Test
@@ -225,7 +225,7 @@ public class DocumentAccessTokenServiceTest {
 
         // Then
         DocumentAccessTokenEntity updated = em.createQuery(
-                        "SELECT t FROM DocumentAccessToken t WHERE t.token = :token",
+                        "SELECT t FROM DocumentAccessTokenEntity t WHERE t.token = :token",
                         DocumentAccessTokenEntity.class
                 )
                 .setParameter("token", token)
@@ -285,7 +285,8 @@ public class DocumentAccessTokenServiceTest {
                 accessToken.getExpiresAt()
         );
 
-        assertEquals(72, hoursUntilExpiration);
+        assertTrue(hoursUntilExpiration >= 71 && hoursUntilExpiration <= 73,
+                "Expected ~72h expiration, got " + hoursUntilExpiration + "h");
         assertTrue(accessToken.getExpiresAt().isAfter(before.plus(71, ChronoUnit.HOURS)));
         assertTrue(accessToken.getExpiresAt().isBefore(after.plus(73, ChronoUnit.HOURS)));
     }

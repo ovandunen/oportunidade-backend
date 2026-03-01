@@ -5,7 +5,6 @@ import ao.co.oportunidade.notification.service.AlertService;
 import ao.co.oportunidade.order.model.Order;
 import ao.co.oportunidade.order.model.PackageType;
 import ao.co.oportunidade.order.service.OrderService;
-import ao.co.oportunidade.payment.model.PaymentTransaction;
 import ao.co.oportunidade.webhook.dto.AppyPayWebhookPayload;
 import ao.co.oportunidade.webhook.dto.ReferenceInfo;
 import io.quarkus.test.junit.QuarkusTest;
@@ -20,11 +19,9 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.mockito.ArgumentCaptor;
 import solutions.envision.odoo.document.service.DocumentTokenService;
 import solutions.envision.odoo.service.OdooApiClient;
-import solutions.envision.odoo.dto.OdooWebhookResponse;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -59,7 +56,7 @@ class PaymentProcessServiceTest {
     @InjectMock
     OrderService orderService;
 
-    private AppyPayWebhookPayload testPayload;
+    private AppyPayWebhookPayload payload;
     private Order testOrder;
     private static final String TEST_TRANSACTION_ID = "TXN-TEST-12345";
     private static final String TEST_REFERENCE_CODE = "TEST-REF-001";
@@ -90,20 +87,22 @@ class PaymentProcessServiceTest {
         testOrder.setStatus(Order.OrderStatus.PENDING);
 
         // Create test payload
-        testPayload = new AppyPayWebhookPayload();
-        testPayload.setId(TEST_TRANSACTION_ID);
-        testPayload.setMerchantTransactionId("ORD-TEST-12345");
-        testPayload.setStatus("SUCCESS");
-        testPayload.setAmount(new BigDecimal("100.00"));
-        testPayload.setCurrency("AOA");
-        testPayload.setPaymentMethod("REF");
+        payload = new AppyPayWebhookPayload();
+        payload.setId(TEST_TRANSACTION_ID);
+        payload.setMerchantTransactionId("ORD-TEST-12345");
+        payload.setStatus("SUCCESS");
+        payload.setAmount(new BigDecimal("100.00"));
+        payload.setCurrency("AOA");
+        payload.setPaymentMethod("REF");
 
         ReferenceInfo refInfo = new ReferenceInfo();
         refInfo.setEntity("employer");
         refInfo.setReferenceNumber(TEST_REFERENCE_CODE);
-        testPayload.setReference(refInfo);
+        payload.setReference(refInfo);
 
-        // Mock order service
+        // Mock order service (PaymentProcessService uses findOrCreateFromWebhook for SUCCESS, PENDING, FAILED)
+        when(orderService.findOrCreateFromWebhook(any(AppyPayWebhookPayload.class), any(Order.OrderStatus.class)))
+                .thenReturn(testOrder);
         when(orderService.find(any(AppyPayWebhookPayload.class))).thenReturn(testOrder);
         doNothing().when(orderService).transact(any(Order.class));
         when(orderService.findByMerchantTransactionId(anyString())).thenReturn(Optional.of(testOrder));
@@ -141,7 +140,7 @@ class PaymentProcessServiceTest {
         when(odooApiClient.sendPayment(anyString(), any())).thenReturn(mockOdooResponse());
 
         // When
-        paymentProcessService.processPaymentStatus(testPayload);
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then
         verify(orderService, times(1)).transact(argThat(order ->
@@ -164,7 +163,7 @@ class PaymentProcessServiceTest {
     @DisplayName("Should enrich order with employer information")
     void testEnrichOrderWithEmployerInfo() throws Exception {
         // When
-        paymentProcessService.processPaymentStatus(testPayload);
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
@@ -186,10 +185,10 @@ class PaymentProcessServiceTest {
     @DisplayName("Should handle pending payment status")
     void testHandlePendingPayment() throws Exception {
         // Given
-        testPayload.setStatus("PENDING");
+        payload.setStatus("PENDING");
 
         // When
-        paymentProcessService.processPaymentStatus(testPayload);
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then
         verify(odooApiClient, times(1)).sendPayment(anyString(), any());
@@ -203,10 +202,10 @@ class PaymentProcessServiceTest {
     @DisplayName("Should handle failed payment status")
     void testHandleFailedPayment() throws Exception {
         // Given
-        testPayload.setStatus("FAILED");
+        payload.setStatus("FAILED");
 
         // When
-        paymentProcessService.processPaymentStatus(testPayload);
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then — FAILED payments must NOT notify Odoo (bug fixed in PaymentProcessService)
         verify(odooApiClient, never()).sendPayment(anyString(), any());
@@ -219,17 +218,17 @@ class PaymentProcessServiceTest {
     @DisplayName("Should handle cancelled payment status")
     void testHandleCancelledPayment() throws Exception {
         // Given
-        testPayload.setStatus("CANCELLED");
+        payload.setStatus("CANCELLED");
 
         // Need to mock findByMerchantTransactionId since cancelled payment checks for existing order
-        when(orderService.findByMerchantTransactionId(testPayload.getMerchantTransactionId()))
+        when(orderService.findByMerchantTransactionId(payload.getMerchantTransactionId()))
                 .thenReturn(Optional.of(testOrder));
 
         // When
-        paymentProcessService.processPaymentStatus(testPayload);
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then
-        verify(orderService, times(1)).findByMerchantTransactionId(testPayload.getMerchantTransactionId());
+        verify(orderService, times(1)).findByMerchantTransactionId(payload.getMerchantTransactionId());
         verify(odooApiClient, times(1)).sendPayment(anyString(), any());
         verify(tokenService, never()).generateAccessToken(any(Order.class));
         verify(notificationService, never()).sendDocumentAccessEmail(anyString(), anyString(), any(), anyInt());
@@ -251,7 +250,7 @@ class PaymentProcessServiceTest {
                 .thenReturn(mockOdooResponse());
 
         // When
-        paymentProcessService.processPaymentStatus(testPayload);
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then
         verify(odooApiClient, times(2)).sendPayment(anyString(), any());
@@ -268,7 +267,7 @@ class PaymentProcessServiceTest {
         when(odooApiClient.sendPayment(anyString(), any())).thenReturn(mockOdooResponse());
 
         // When
-        paymentProcessService.processPaymentStatus(testPayload);
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then
         verify(odooApiClient, times(1)).sendPayment(anyString(), any());
@@ -290,7 +289,7 @@ class PaymentProcessServiceTest {
                 .thenReturn(mockOdooResponse());
 
         // When
-        paymentProcessService.processPaymentStatus(testPayload);
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then
         verify(odooApiClient, times(3)).sendPayment(anyString(), any());
@@ -303,13 +302,18 @@ class PaymentProcessServiceTest {
     @org.junit.jupiter.api.Order(9)
     @DisplayName("Should send alert when employer reference not found")
     void testEnrichOrder_EmployerReferenceNotFound() {
+
+        final Order order = new Order();
+        order.setId(UUID.randomUUID());
+        when(orderService.findOrCreateFromWebhook(payload, Order.OrderStatus.PENDING)).
+                thenReturn(order);
         // Given
-        testPayload.getReference().setReferenceNumber("INVALID-REF-999");
+        payload.getReference().setReferenceNumber("INVALID-REF-999");
 
         // When & Then
         RuntimeException exception = assertThrows(
                 RuntimeException.class,
-                () -> paymentProcessService.processPaymentStatus(testPayload)
+                () -> paymentProcessService.processPaymentStatus(payload)
         );
 
         assertTrue(exception.getMessage().contains("Failed to process payment webhook"));
@@ -329,7 +333,7 @@ class PaymentProcessServiceTest {
         when(odooApiClient.sendPayment(anyString(), any())).thenReturn(mockOdooResponse());
 
         // When
-        paymentProcessService.processPaymentStatus(testPayload);
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then
         verify(alertService, times(1)).sendTokenGenerationAlert(
@@ -347,11 +351,11 @@ class PaymentProcessServiceTest {
     @DisplayName("Should not generate token when employer info is missing")
     void testTokenGeneration_SkippedWhenEmployerMissing() throws Exception {
         // Given
-        testPayload.setReference(null); // No reference info
+        payload.setReference(null); // No reference info
         when(odooApiClient.sendPayment(anyString(), any())).thenReturn(mockOdooResponse());
 
         // When - Should not throw exception, just skip enrichment
-        paymentProcessService.processPaymentStatus(testPayload);
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then - Token should not be generated
         verify(tokenService, never()).generateAccessToken(any(Order.class));
@@ -363,11 +367,11 @@ class PaymentProcessServiceTest {
     @DisplayName("Should handle null reference info gracefully")
     void testProcessPayment_NullReferenceInfo() throws Exception {
         // Given
-        testPayload.setReference(null);
+        payload.setReference(null);
         when(odooApiClient.sendPayment(anyString(), any())).thenReturn(mockOdooResponse());
 
         // When - Should not throw exception
-        paymentProcessService.processPaymentStatus(testPayload);
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then - Should process payment but skip token generation
         verify(odooApiClient, times(1)).sendPayment(anyString(), any());
@@ -386,7 +390,7 @@ class PaymentProcessServiceTest {
         when(odooApiClient.sendPayment(anyString(), any())).thenReturn(mockOdooResponse());
 
         // When
-        paymentProcessService.processPaymentStatus(testPayload);
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
@@ -406,7 +410,7 @@ class PaymentProcessServiceTest {
         when(odooApiClient.sendPayment(anyString(), any())).thenReturn(mockOdooResponse());
 
         // When
-        paymentProcessService.processPaymentStatus(testPayload);
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
@@ -427,7 +431,7 @@ class PaymentProcessServiceTest {
         when(odooApiClient.sendPayment(anyString(), any())).thenReturn(mockOdooResponse());
 
         // When
-        paymentProcessService.processPaymentStatus(testPayload);
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
@@ -450,7 +454,7 @@ class PaymentProcessServiceTest {
         when(odooApiClient.sendPayment(anyString(), any())).thenReturn(mockOdooResponse());
 
         // When
-        paymentProcessService.processPaymentStatus(testPayload);
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
@@ -475,7 +479,7 @@ class PaymentProcessServiceTest {
         when(odooApiClient.sendPayment(anyString(), any())).thenReturn(mockOdooResponse());
 
         // When
-        paymentProcessService.processPaymentStatus(testPayload);
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then
         verify(notificationService, times(1)).sendDocumentAccessEmail(
@@ -491,11 +495,11 @@ class PaymentProcessServiceTest {
     @DisplayName("Should not send email for non-SUCCESS statuses")
     void testEmailNotification_OnlyForSuccess() throws Exception {
         // Given
-        testPayload.setStatus("PENDING");
+        payload.setStatus("PENDING");
         when(odooApiClient.sendPayment(anyString(), any())).thenReturn(mockOdooResponse());
 
         // When
-        paymentProcessService.processPaymentStatus(testPayload);
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then
         verify(notificationService, never()).sendDocumentAccessEmail(
@@ -510,10 +514,10 @@ class PaymentProcessServiceTest {
     @DisplayName("Should handle unknown payment status gracefully")
     void testProcessPayment_UnknownStatus() throws Exception {
         // Given
-        testPayload.setStatus("UNKNOWN_STATUS");
+        payload.setStatus("UNKNOWN_STATUS");
 
         // When
-        paymentProcessService.processPaymentStatus(testPayload);
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then - should not crash, just log warning
         verify(orderService, never()).transact(any(Order.class));
@@ -527,14 +531,14 @@ class PaymentProcessServiceTest {
         when(odooApiClient.sendPayment(anyString(), any())).thenReturn(mockOdooResponse());
 
         // When - Test multiple statuses
-        testPayload.setStatus("SUCCESS");
-        paymentProcessService.processPaymentStatus(testPayload);
+        payload.setStatus("SUCCESS");
+        paymentProcessService.processPaymentStatus(payload);
 
-        testPayload.setStatus("FAILED");
-        paymentProcessService.processPaymentStatus(testPayload);
+        payload.setStatus("FAILED");
+        paymentProcessService.processPaymentStatus(payload);
 
-        testPayload.setStatus("PENDING");
-        paymentProcessService.processPaymentStatus(testPayload);
+        payload.setStatus("PENDING");
+        paymentProcessService.processPaymentStatus(payload);
 
         // Then — SUCCESS and PENDING call Odoo; FAILED does NOT (bug fixed in PaymentProcessService)
         verify(odooApiClient, times(2)).sendPayment(anyString(), any());
