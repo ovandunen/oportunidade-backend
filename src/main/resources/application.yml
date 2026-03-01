@@ -71,6 +71,12 @@ quarkus:
     enable: true
     always-include: true
 
+# Payment reference issuance (text & QR – alternative to AppyPay reference flow)
+payment:
+  reference:
+    entity-code: ${PAYMENT_REFERENCE_ENTITY:00123}
+    validity-hours: ${PAYMENT_REFERENCE_VALIDITY_HOURS:72}
+
 # Webhook Configuration
 webhook:
   max-retry-count: ${WEBHOOK_MAX_RETRY:3}

@@ -107,7 +107,7 @@ public class DocumentAccessTokenService {
     @Transactional
     public TokenValidationResult validateToken(String token) {
         final DocumentAccessTokenEntity accessToken = em.createQuery(
-                        "SELECT t FROM DocumentAccessToken t WHERE t.token = :token",
+                        "SELECT t FROM DocumentAccessTokenEntity t WHERE t.token = :token",
                         DocumentAccessTokenEntity.class)
                 .setParameter("token", token)
                 .getResultStream()
@@ -155,7 +155,7 @@ public class DocumentAccessTokenService {
             case "standard" -> 50;
             case "premium" -> 200;
             case "unlimited" -> Integer.MAX_VALUE;
-            default -> 25;
+            default -> 10;
         };
     }
 }
