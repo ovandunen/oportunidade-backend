@@ -10,6 +10,11 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.logging.Logger;
 
 /**
@@ -18,6 +23,7 @@ import org.jboss.logging.Logger;
  * Refactored to use DDD service facade.
  */
 @Path("/webhooks/appypay")
+@Tag(name = "Webhooks", description = "Incoming webhooks from AppyPay (configure webhook URL in AppyPay dashboard)")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class AppyPayWebhookResource {
@@ -39,6 +45,9 @@ public class AppyPayWebhookResource {
      * @return webhook response
      */
     @POST
+    @Operation(summary = "Receive AppyPay webhook", description = "Called by AppyPay on payment status change (Success, Pending, Failed, Cancelled)")
+    @APIResponse(responseCode = "200", description = "Webhook received and queued", content = @Content(schema = @Schema(implementation = WebhookResponse.class)))
+    @APIResponse(responseCode = "500", description = "Processing error")
     public Response receiveWebhook(AppyPayWebhookPayload payload) {
         final String transactionId = payload.getId();
         final String merchantTxId = payload.getMerchantTransactionId();

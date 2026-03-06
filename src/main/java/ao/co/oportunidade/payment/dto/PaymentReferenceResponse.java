@@ -2,12 +2,14 @@ package ao.co.oportunidade.payment.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.time.Instant;
 
 /**
  * Response DTO for payment reference issuance (text format).
  */
+@Schema(description = "Payment reference for MultiCaixa ATM/agent display")
 @Getter
 @Setter
 @NoArgsConstructor

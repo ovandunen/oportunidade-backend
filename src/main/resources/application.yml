@@ -66,10 +66,13 @@ quarkus:
     ui:
       enable: true
 
-  # OpenAPI / Swagger UI Configuration
+  # OpenAPI / Swagger UI Configuration (for third-party REST consumers)
   swagger-ui:
     enable: true
     always-include: true
+  smallrye-openapi:
+    # OpenAPI spec available at /api-docs/openapi (JSON) and /api-docs/openapi?format=yaml (YAML)
+    path: /api-docs/openapi
 
 # Payment reference issuance (text & QR – alternative to AppyPay reference flow)
 payment:

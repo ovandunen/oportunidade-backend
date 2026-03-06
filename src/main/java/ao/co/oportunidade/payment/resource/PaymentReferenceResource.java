@@ -9,6 +9,11 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import static solutions.envision.resource.Resource.API_VERSION_PATH;
 
@@ -18,6 +23,7 @@ import static solutions.envision.resource.Resource.API_VERSION_PATH;
  * AppyPay webhook handling remains unchanged.
  */
 @Path(API_VERSION_PATH + "/payment-references")
+@Tag(name = "Payment References", description = "Issue MultiCaixa payment references (text or QR)")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class PaymentReferenceResource {
@@ -34,6 +40,9 @@ public class PaymentReferenceResource {
      */
     @POST
     @Path("/text")
+    @Operation(summary = "Issue text reference", description = "Returns a 9-digit reference for display at MultiCaixa ATM or agent")
+    @APIResponse(responseCode = "200", description = "Reference issued successfully",
+            content = @Content(schema = @Schema(implementation = PaymentReferenceResponse.class)))
     public Response issueTextReference(PaymentReferenceRequest request) {
         PaymentReferenceResponse response = textService.issueReference(request);
         return Response.ok(response).build();
@@ -45,6 +54,9 @@ public class PaymentReferenceResource {
      */
     @POST
     @Path("/qr")
+    @Operation(summary = "Issue QR reference", description = "Returns a base64-encoded PNG QR code for MultiCaixa POS or mobile")
+    @APIResponse(responseCode = "200", description = "QR reference issued successfully",
+            content = @Content(schema = @Schema(implementation = PaymentReferenceQrResponse.class)))
     public Response issueQrReference(PaymentReferenceRequest request) {
         PaymentReferenceQrResponse response = qrService.issueReferenceQr(request);
         return Response.ok(response).build();
