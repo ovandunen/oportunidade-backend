@@ -1,6 +1,7 @@
 package ao.co.oportunidade.payment.dto;
 
 import lombok.*;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.math.BigDecimal;
 
@@ -8,6 +9,7 @@ import java.math.BigDecimal;
  * Request DTO for issuing a MultiCaixa payment reference.
  * Used for both text and QR code reference issuance.
  */
+@Schema(description = "Request to issue a MultiCaixa payment reference")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -15,25 +17,15 @@ import java.math.BigDecimal;
 @Builder
 public class PaymentReferenceRequest {
 
-    /**
-     * Merchant/order transaction ID (links to order when webhook arrives).
-     */
+    @Schema(description = "Merchant/order transaction ID (links to order when webhook arrives)", example = "order-1234567890", required = true)
     private String merchantTransactionId;
 
-    /**
-     * Payment amount in AOA.
-     */
+    @Schema(description = "Payment amount in AOA", example = "5000", required = true)
     private BigDecimal amount;
 
-    /**
-     * Employer reference code (from EmployerReference) – identifies the payer.
-     * Optional; default entity code used if not provided.
-     */
+    @Schema(description = "Employer reference code (optional; default entity code used if not provided)")
     private String referenceCode;
 
-    /**
-     * Entity code for MultiCaixa (e.g. "00123").
-     * Defaults to configured value if not provided.
-     */
+    @Schema(description = "Entity code for MultiCaixa (e.g. 00123); defaults to configured value if not provided")
     private String entityCode;
 }
