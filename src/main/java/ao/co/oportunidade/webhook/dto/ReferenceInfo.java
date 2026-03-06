@@ -1,6 +1,5 @@
 package ao.co.oportunidade.webhook.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
@@ -29,17 +28,15 @@ public class ReferenceInfo {
     private String entity;
 
     /**
-     * Due date for the payment reference
+     * Due date for the payment reference (ISO-8601 e.g. 2026-03-06T19:47:20Z)
      */
     @JsonProperty("dueDate")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
     private Instant dueDate;
 
     /**
-     * Start date for the payment reference
+     * Start date for the payment reference (ISO-8601 e.g. 2026-03-06T19:47:20Z)
      */
     @JsonProperty("startDate")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
     private Instant startDate;
 
     /**

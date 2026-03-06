@@ -45,7 +45,7 @@ public class PaymentTransactionEntity extends DomainEntity {
     public static final String FIND_ALL = "PaymentTransaction.findAll";
     public static final String FIND_BY_ID = "PaymentTransaction.findById";
     public static final String FIND_BY_APPYPAY_TX_ID = "PaymentTransaction.findByAppyPayTxId";
-    public static final String PRIMARY_KEY = "id";
+
 
     @Id
     @Column(name = "id", nullable = false)

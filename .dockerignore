@@ -1,5 +1,20 @@
-*
-!target/*-runner
-!target/*-runner.jar
-!target/lib/*
-!target/quarkus-app/*
+# Build output
+target/
+build/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Docs and non-runtime
+*.md
+docs/
+
+# Local config
+.env*
+application-local.*

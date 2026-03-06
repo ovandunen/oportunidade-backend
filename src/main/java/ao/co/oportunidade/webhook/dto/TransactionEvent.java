@@ -1,6 +1,5 @@
 package ao.co.oportunidade.webhook.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
@@ -36,10 +35,9 @@ public class TransactionEvent {
     private String message;
 
     /**
-     * Timestamp when the event occurred
+     * Timestamp when the event occurred (ISO-8601 e.g. 2026-03-05T19:58:15Z)
      */
     @JsonProperty("timestamp")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     private Instant timestamp;
 
     /**
