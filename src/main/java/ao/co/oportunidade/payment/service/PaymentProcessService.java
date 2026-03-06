@@ -63,8 +63,10 @@ public class PaymentProcessService extends
                 payload.getId(), payload.getStatus());
 
         try {
-            switch (payload.getStatus().toUpperCase()) {
+            String status = payload.getStatus() != null ? payload.getStatus().toUpperCase() : "";
+            switch (status) {
                 case "SUCCESS":
+                case "PAID":  // AppyPay emulator uses PAID when payment completes
                     handleSuccessfulPayment(payload);
                     break;
                 case "PENDING":

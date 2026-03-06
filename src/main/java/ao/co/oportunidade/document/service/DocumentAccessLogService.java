@@ -48,21 +48,22 @@ public class DocumentAccessLogService {
             String userAgent,
             Long documentSizeBytes) {
 
-        DocumentAccessAuditLog log = new DocumentAccessAuditLog();
-        log.setOrderId(orderId);
-        log.setEmployerId(employerId);
-        log.setEmployerEmail(employerEmail);
-        log.setTokenUsed(truncateToken(tokenUsed));
-        log.setTokenType(tokenType);
-        log.setCandidateId(candidateId);
-        log.setDocumentId(documentId);
-        log.setDocumentName(documentName);
-        log.setIpAddress(ipAddress);
-        log.setUserAgent(truncateUserAgent(userAgent));
-        log.setAccessedAt(Instant.now());
-        log.setSuccess(true);
-        log.setHttpStatusCode(200);
-        log.setDocumentSizeBytes(documentSizeBytes);
+        DocumentAccessAuditLog log = DocumentAccessAuditLog.builder()
+                .orderId(orderId)
+                .employerId(employerId)
+                .employerEmail(employerEmail)
+                .tokenUsed(truncateToken(tokenUsed))
+                .tokenType(tokenType)
+                .candidateId(candidateId)
+                .documentId(documentId)
+                .documentName(documentName)
+                .ipAddress(ipAddress)
+                .userAgent(truncateUserAgent(userAgent))
+                .accessedAt(Instant.now())
+                .success(true)
+                .httpStatusCode(200)
+                .documentSizeBytes(documentSizeBytes)
+                .build();
 
         log.persist();
 
@@ -102,20 +103,21 @@ public class DocumentAccessLogService {
             Integer httpStatusCode,
             String errorMessage) {
 
-        DocumentAccessAuditLog log = new DocumentAccessAuditLog();
-        log.setOrderId(orderId);
-        log.setEmployerId(employerId);
-        log.setEmployerEmail(employerEmail);
-        log.setTokenUsed(truncateToken(tokenUsed));
-        log.setTokenType(tokenType);
-        log.setCandidateId(candidateId);
-        log.setDocumentId(documentId);
-        log.setIpAddress(ipAddress);
-        log.setUserAgent(truncateUserAgent(userAgent));
-        log.setAccessedAt(Instant.now());
-        log.setSuccess(false);
-        log.setHttpStatusCode(httpStatusCode);
-        log.setErrorMessage(truncateErrorMessage(errorMessage));
+        DocumentAccessAuditLog log = DocumentAccessAuditLog.builder()
+                .orderId(orderId)
+                .employerId(employerId)
+                .employerEmail(employerEmail)
+                .tokenUsed(truncateToken(tokenUsed))
+                .tokenType(tokenType)
+                .candidateId(candidateId)
+                .documentId(documentId)
+                .ipAddress(ipAddress)
+                .userAgent(truncateUserAgent(userAgent))
+                .accessedAt(Instant.now())
+                .success(false)
+                .httpStatusCode(httpStatusCode)
+                .errorMessage(truncateErrorMessage(errorMessage))
+                .build();
 
         log.persist();
 

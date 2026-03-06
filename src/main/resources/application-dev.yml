@@ -25,6 +25,11 @@ quarkus:
     baseline-on-migrate: true
     baseline-version: 0
 
+  # AppyPay Emulator - Development (points to local emulator on port 8085)
+  rest-client:
+    appypay-api:
+      url: http://localhost:8085/emulator/appypay
+
 # Odoo Configuration - Development
 odoo:
   url: http://localhost:8069

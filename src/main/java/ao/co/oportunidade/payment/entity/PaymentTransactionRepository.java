@@ -3,7 +3,6 @@ package ao.co.oportunidade.payment.entity;
 import ao.co.oportunidade.payment.model.PaymentTransaction;
 import solutions.envision.entity.Repository;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 import java.util.Collection;
 import java.util.List;
@@ -16,8 +15,6 @@ import java.util.UUID;
 @ApplicationScoped
 public class PaymentTransactionRepository extends Repository<PaymentTransaction, PaymentTransactionEntity,PaymentTransactionEntityMapper> {
 
-    @Inject
-    PaymentTransactionEntityMapper mapper;
 
     @Override
     public Collection<PaymentTransaction> findDomains() {
@@ -26,7 +23,7 @@ public class PaymentTransactionRepository extends Repository<PaymentTransaction,
                 .getResultStream()
                 .toList();
         return entities.stream()
-                .map(mapper::mapToDomain)
+                .map(getMapper()::mapToDomain)
                 .toList();
     }
 
@@ -37,7 +34,7 @@ public class PaymentTransactionRepository extends Repository<PaymentTransaction,
                     .createNamedQuery(PaymentTransactionEntity.FIND_BY_ID, PaymentTransactionEntity.class)
                     .setParameter(PaymentTransactionEntity.PRIMARY_KEY, domain.getId())
                     .getSingleResult();
-            return Optional.ofNullable(mapper.mapToDomain(entity));
+            return Optional.ofNullable(getMapper().mapToDomain(entity));
         } catch (Exception e) {
             return Optional.empty();
         }
@@ -62,7 +59,7 @@ public class PaymentTransactionRepository extends Repository<PaymentTransaction,
                 return Optional.empty();
             }
             
-            return Optional.ofNullable(mapper.mapToDomain(results.getFirst()));
+            return Optional.ofNullable(getMapper().mapToDomain(results.getFirst()));
         } catch (Exception e) {
             return Optional.empty();
         }
@@ -80,7 +77,7 @@ public class PaymentTransactionRepository extends Repository<PaymentTransaction,
                 .setParameter("orderId", orderId)
                 .getResultList();
         return entities.stream()
-                .map(mapper::mapToDomain)
+                .map(getMapper()::mapToDomain)
                 .toList();
     }
 }
