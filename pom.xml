@@ -206,6 +206,16 @@
         <artifactId>quarkus-maven-plugin</artifactId>
         <version>${quarkus.platform.version}</version>
         <extensions>true</extensions>
+        <executions>
+          <execution>
+            <goals>
+              <goal>build</goal>
+              <goal>generate-code</goal>
+              <goal>generate-code-tests</goal>
+              <goal>native-image-agent</goal>
+            </goals>
+          </execution>
+        </executions>
         <configuration>
           <jvmArgs>--add-opens java.base/java.lang=ALL-UNNAMED</jvmArgs>
         </configuration>
@@ -281,8 +291,7 @@
         <version>${compiler-plugin.version}</version>
         <configuration>
           <parameters>true</parameters>
-          <source>${java.version}</source>
-          <target>${java.version}</target>
+          <release>${maven.compiler.release}</release>
           <annotationProcessorPaths>
             <path>
               <groupId>org.projectlombok</groupId>
