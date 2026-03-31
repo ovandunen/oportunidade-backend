@@ -98,8 +98,8 @@ odoo:
   timeout: ${ODOO_TIMEOUT:30000}
   max-retries: ${ODOO_MAX_RETRIES:3}
   webhook:
-    key: ${ODOO_WEBHOOK_KEY:}
-    url: ${ODOO_WEBHOOK_URL:}
+    key: ${ODOO_WEBHOOK_KEY}
+    url: ${ODOO_WEBHOOK_URL}
 
 # Reactive Messaging Configuration for Webhook Processing
 mp:
@@ -114,6 +114,7 @@ mp:
 
 # JWT Token Configuration
 jwt:
+  secret: ${JWT_SECRET}
   private-key-file: ${JWT_PRIVATE_KEY_FILE:src/main/resources/privateKey.pem}
   issuer: ${JWT_ISSUER:recruiting-agency-backend}
   expiration:
