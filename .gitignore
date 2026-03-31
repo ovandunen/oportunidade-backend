@@ -33,3 +33,4 @@ build/
 .env.example
 publicKey-test.pem
 privateKey-test.pem
+.*.swp
