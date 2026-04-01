@@ -50,8 +50,10 @@ quarkus:
     port: 8080
     cors:
       enabled: true
-      origins: "*"
-
+      origins:
+        - "http://localhost:3000"
+      methods: GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD
+      headers: Authorization,Content-Type,Accept
 
   # Logging Configuration
   logging:
