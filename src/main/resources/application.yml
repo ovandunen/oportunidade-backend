@@ -48,6 +48,14 @@ quarkus:
   # HTTP Configuration
   http:
     port: 8080
+    auth:
+      permission:
+        webhooks-public:
+          paths: /webhooks/*
+          policy: permit
+        health-public:
+          paths: /q/*
+          policy: permit
     cors:
       enabled: true
       origins:
@@ -76,11 +84,28 @@ quarkus:
     # OpenAPI spec available at /api-docs/openapi (JSON) and /api-docs/openapi?format=yaml (YAML)
     path: /api-docs/openapi
 
+  # OIDC (Keycloak Dev Services in %dev — see application-dev.yml). Disabled by default for CI / plain JVM runs.
+  oidc:
+    enabled: ${OIDC_ENABLED:false}
+    application-type: service
+    auth-server-url: ${OIDC_AUTH_SERVER_URL:http://localhost:8180/realms/quarkus}
+    client-id: ${OIDC_CLIENT_ID:backend-service}
+    credentials:
+      secret: ${OIDC_CLIENT_SECRET:secret}
+    roles:
+      role-claim-path: ${OIDC_ROLE_CLAIM_PATH:realm_access/roles}
+
+  rest-client:
+    appypay-emulator:
+      url: ${APPYPAY_EMULATOR_URL:http://localhost:8085}
+
 # Payment reference issuance (text & QR – alternative to AppyPay reference flow)
 payment:
   reference:
     entity-code: ${PAYMENT_REFERENCE_ENTITY:00123}
     validity-hours: ${PAYMENT_REFERENCE_VALIDITY_HOURS:72}
+  initiation:
+    session-expiry-hours: ${PAYMENT_SESSION_EXPIRY_HOURS:24}
 
 # Webhook Configuration
 webhook:

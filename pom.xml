@@ -17,6 +17,8 @@
       <mapstruct.version>1.6.3</mapstruct.version>
     <skipITs>true</skipITs>
     <surefire-plugin.version>3.5.4</surefire-plugin.version>
+    <!-- WireMock 4 + jetty-ee10 must use one Jetty release train; mixed 12.0.x / 12.1.x causes NoSuchMethodError on Environment.ensure -->
+    <jetty.version>12.1.6</jetty.version>
     <postgres.user>${POSTGRES_USER}</postgres.user>
     <postgres.pwd>${POSTGRES_PASSWORD}</postgres.pwd>
   </properties>
@@ -44,6 +46,35 @@
         <version>1.20.6</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-bom</artifactId>
+        <version>${jetty.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <!-- wiremock-jetty pins ee10 modules to 12.0.x; BOM alone does not upgrade them — force one train -->
+      <dependency>
+        <groupId>org.eclipse.jetty.ee10</groupId>
+        <artifactId>jetty-ee10-servlet</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty.ee10</groupId>
+        <artifactId>jetty-ee10-servlets</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty.ee10</groupId>
+        <artifactId>jetty-ee10-webapp</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-ee</artifactId>
+        <version>${jetty.version}</version>
       </dependency>
 
     </dependencies>
@@ -119,6 +150,14 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-smallrye-openapi</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-oidc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-hibernate-validator</artifactId>
+    </dependency>
       <dependency>
           <groupId>io.quarkus</groupId>
           <artifactId>quarkus-smallrye-jwt-build</artifactId>
@@ -166,6 +205,11 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-junit5-mockito</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-test-security</artifactId>
       <scope>test</scope>
     </dependency>
       <dependency>

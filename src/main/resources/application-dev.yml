@@ -11,7 +11,15 @@ quarkus:
     jdbc:
       url: jdbc:postgresql://localhost:5432/odoo_payments
       driver: org.postgresql.Driver
-  
+  oidc:
+    enabled: true
+    application-type: service
+    roles:
+      role-claim-path: realm_access/roles
+  keycloak:
+    devservices:
+      enabled: true
+
   # Hibernate Configuration - Development
   hibernate:
     orm:
@@ -29,9 +37,8 @@ quarkus:
   rest-client:
     appypay-api:
       url: http://localhost:8085/emulator/appypay
-
-  devservices:
-    enabled=false:
+    appypay-emulator:
+      url: http://localhost:8085
 
 # Odoo Configuration - Development
 odoo:
@@ -68,3 +75,6 @@ retry:
         "solutions.envision": DEBUG
         "org.flywaydb": INFO
         "org.hibernate": INFO
+
+
+

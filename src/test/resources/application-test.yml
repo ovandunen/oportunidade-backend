@@ -7,9 +7,13 @@
 # and Maven profile dockerless-test (-Pdockerless-test).
 
 quarkus:
+  oidc:
+    enabled: false
   rest-client:
     odoo-api:
       url: http://localhost:9090
+    appypay-emulator:
+      url: http://localhost:8085
   datasource:
     db-kind: postgresql
     devservices:

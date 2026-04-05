@@ -1,10 +1,9 @@
-# Base config for test profile - required for application-test.yml to load.
-# See: https://quarkus.io/guides/config-reference#profile-aware-configuration
+# Base test resources root; profile-specific values live in application-test.yml.
+# Quarkus loads application-test.yml when the test profile is active (@QuarkusTest).
 quarkus:
   profile: test
   devservices:
-    enabled=false:mvn
-
+    enabled: true
   datasource:
     devservices:
-      image-name=postgres:18:
+      image-name: postgres:18
