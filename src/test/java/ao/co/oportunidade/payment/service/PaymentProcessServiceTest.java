@@ -1,7 +1,6 @@
 package ao.co.oportunidade.payment.service;
 
 import ao.co.oportunidade.employer.model.EmployerReference;
-import ao.co.oportunidade.notification.service.AlertService;
 import ao.co.oportunidade.order.model.Order;
 import ao.co.oportunidade.order.model.PackageType;
 import ao.co.oportunidade.order.service.OrderService;
@@ -31,7 +30,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * Comprehensive unit tests for PaymentProcessService.
- * Tests retry logic, enrichment, alert integration, and all payment statuses.
+ * Tests retry logic, enrichment, and all payment statuses.
  */
 @QuarkusTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -39,9 +38,6 @@ class PaymentProcessServiceTest {
 
     @Inject
     PaymentProcessService paymentProcessService;
-
-    @InjectMock
-    AlertService alertService;
 
     @InjectMock
     @RestClient
@@ -65,7 +61,7 @@ class PaymentProcessServiceTest {
     @Transactional
     void setup() {
         // Reset all mocks
-        reset(orderService, odooApiClient, tokenService, notificationService, alertService);
+        reset(orderService, odooApiClient, tokenService, notificationService);
 
         // Clean up test data
         EmployerReference.deleteAll();
@@ -116,8 +112,6 @@ class PaymentProcessServiceTest {
 
         // Mock notifications
         doNothing().when(notificationService).sendDocumentAccessEmail(anyString(), anyString(), any(PackageType.class), anyInt());
-        doNothing().when(alertService).sendEmployerReferenceNotFoundAlert(anyString(), anyString());
-        doNothing().when(alertService).sendOdooApiFailureAlert(anyString(), anyString());
     }
 
     private solutions.envision.odoo.dto.OdooWebhookResponse mockOdooResponse() {
@@ -254,7 +248,6 @@ class PaymentProcessServiceTest {
 
         // Then
         verify(odooApiClient, times(2)).sendPayment(anyString(), any());
-        verify(alertService, atLeastOnce()).sendOdooApiFailureAlert(eq("sendPaymentToOdoo"), anyString());
     }
 
     @Test
@@ -271,12 +264,11 @@ class PaymentProcessServiceTest {
 
         // Then
         verify(odooApiClient, times(1)).sendPayment(anyString(), any());
-        verify(alertService, never()).sendOdooApiFailureAlert(anyString(), anyString());
     }
 
     @Test
     @org.junit.jupiter.api.Order(8)
-    @DisplayName("Should send alert on each Odoo API retry")
+    @DisplayName("Should retry Odoo API until success after multiple failures")
     void testSendToOdooWithRetry_AlertOnEachFailure() throws Exception {
         // Given
         when(tokenService.generateAccessToken(any(Order.class))).thenReturn("test.jwt.token");
@@ -293,14 +285,13 @@ class PaymentProcessServiceTest {
 
         // Then
         verify(odooApiClient, times(3)).sendPayment(anyString(), any());
-        verify(alertService, times(2)).sendOdooApiFailureAlert(eq("sendPaymentToOdoo"), anyString());
     }
 
-    // ============= ERROR HANDLING & ALERTS =============
+    // ============= ERROR HANDLING =============
 
     @Test
     @org.junit.jupiter.api.Order(9)
-    @DisplayName("Should send alert when employer reference not found")
+    @DisplayName("Should fail when employer reference not found")
     void testEnrichOrder_EmployerReferenceNotFound() {
 
         final Order order = new Order();
@@ -317,15 +308,11 @@ class PaymentProcessServiceTest {
         );
 
         assertTrue(exception.getMessage().contains("Failed to process payment webhook"));
-        verify(alertService, times(1)).sendEmployerReferenceNotFoundAlert(
-                eq("INVALID-REF-999"),
-                eq(TEST_TRANSACTION_ID)
-        );
     }
 
     @Test
     @org.junit.jupiter.api.Order(10)
-    @DisplayName("Should send alert when token generation fails")
+    @DisplayName("Should complete payment when token generation fails (logged only)")
     void testTokenGeneration_Failure() throws Exception {
         // Given
         when(tokenService.generateAccessToken(any(Order.class)))
@@ -335,12 +322,7 @@ class PaymentProcessServiceTest {
         // When
         paymentProcessService.processPaymentStatus(payload);
 
-        // Then
-        verify(alertService, times(1)).sendTokenGenerationAlert(
-                any(UUID.class),
-                contains("JWT signing failed")
-        );
-        // Payment should still complete even if token generation fails
+        // Then — payment should still complete even if token generation fails
         verify(orderService, times(1)).transact(argThat(order ->
                 order.getStatus() == Order.OrderStatus.COMPLETED
         ));

@@ -1,0 +1,21 @@
+# =============================================================================
+# Profile: dockerless (use with quarkus.profile=test,dockerless)
+# =============================================================================
+# When Docker/Testcontainers is unavailable, Dev Services cannot start Postgres.
+# Activate this profile and run a local PostgreSQL with database
+# odoo_payments_test (or set QUARKUS_TEST_JDBC_URL).
+#
+# Example:
+#   createdb odoo_payments_test   # or: psql -c 'CREATE DATABASE odoo_payments_test;'
+#   ./mvnw test -Pdockerless-test
+#   # or: ./mvnw test -Dquarkus.profile=test,dockerless
+# =============================================================================
+
+quarkus:
+  datasource:
+    devservices:
+      enabled: false
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    jdbc:
+      url: ${QUARKUS_TEST_JDBC_URL:jdbc:postgresql://localhost:5432/odoo_payments_test}

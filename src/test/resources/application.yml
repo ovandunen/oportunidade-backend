@@ -2,3 +2,9 @@
 # See: https://quarkus.io/guides/config-reference#profile-aware-configuration
 quarkus:
   profile: test
+  devservices:
+    enabled=false:mvn
+
+  datasource:
+    devservices:
+      image-name=postgres:18:

@@ -47,9 +47,9 @@ public class DocumentAccessAuditLog extends PanacheEntityBase {
     private Long id;
 
     /**
-     * Order ID associated with this access.
+     * Order ID when the access is tied to a persisted order; otherwise null.
      */
-    @Column(name = "order_id", nullable = false)
+    @Column(name = "order_id")
     private UUID orderId;
 
     /**

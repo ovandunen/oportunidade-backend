@@ -2,6 +2,10 @@
 # TEST PROFILE CONFIGURATION
 # =============================================================================
 
+# Tests default to Dev Services (Docker Postgres). If Docker is not available,
+# use profile "dockerless" together with "test": see application-dockerless.yml
+# and Maven profile dockerless-test (-Pdockerless-test).
+
 quarkus:
   rest-client:
     odoo-api:
@@ -9,7 +13,7 @@ quarkus:
   datasource:
     db-kind: postgresql
     devservices:
-      enabled: true          # Quarkus auto-starts a Postgres Testcontainer
+      enabled: true          # Quarkus auto-starts a Postgres Testcontainer (requires Docker)
 
   hibernate-orm:
     database:

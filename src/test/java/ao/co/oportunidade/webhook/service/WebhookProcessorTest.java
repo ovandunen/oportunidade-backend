@@ -1,6 +1,5 @@
 package ao.co.oportunidade.webhook.service;
 
-import ao.co.oportunidade.notification.service.AlertService;
 import ao.co.oportunidade.payment.service.PaymentProcessService;
 import ao.co.oportunidade.webhook.dto.AppyPayWebhookPayload;
 import ao.co.oportunidade.webhook.dto.CustomerInfo;
@@ -36,8 +35,6 @@ class WebhookProcessorTest {
     @InjectMock
     WebhookEventServiceFacade webhookEventService;
 
-    @InjectMock
-    AlertService alertService;
 
     private AppyPayWebhookPayload testPayload;
     private static final String TEST_TRANSACTION_ID = "TXN-WEBHOOK-TEST-123";
@@ -80,7 +77,6 @@ class WebhookProcessorTest {
         verify(paymentProcessService, times(1)).processPaymentStatus(testPayload);
         verify(webhookEventService, times(1)).markAsProcessed(TEST_TRANSACTION_ID);
         verify(webhookEventService, never()).markAsFailed(anyString(), anyString());
-        verify(alertService, never()).sendWebhookFailureAlert(anyString(), anyString(), anyInt());
     }
 
     @Test
@@ -193,11 +189,6 @@ class WebhookProcessorTest {
 
         // Then - After 3 failed attempts, fallback is called
         verify(paymentProcessService, atLeast(3)).processPaymentStatus(testPayload);
-        verify(alertService, times(1)).sendWebhookFailureAlert(
-            eq(TEST_TRANSACTION_ID),
-            contains("All retry attempts exhausted"),
-            eq(3)
-        );
         verify(webhookEventService, atLeastOnce()).markAsFailed(
             eq(TEST_TRANSACTION_ID),
             contains("PERMANENT_FAILURE")
@@ -206,7 +197,7 @@ class WebhookProcessorTest {
 
     @Test
     @org.junit.jupiter.api.Order(8)
-    @DisplayName("Fallback should send critical alert to admin")
+    @DisplayName("Fallback should mark webhook permanently failed after exhausted retries")
     void testFallbackProcessPayment_AlertSent() {
         // Given
         doThrow(new RuntimeException("Database connection failed"))
@@ -216,10 +207,9 @@ class WebhookProcessorTest {
         webhookProcessor.processPayment(testPayload);
 
         // Then
-        verify(alertService, times(1)).sendWebhookFailureAlert(
+        verify(webhookEventService, atLeastOnce()).markAsFailed(
             eq(TEST_TRANSACTION_ID),
-            anyString(),
-            eq(3)
+            contains("PERMANENT_FAILURE")
         );
     }
 
@@ -243,16 +233,13 @@ class WebhookProcessorTest {
 
     @Test
     @org.junit.jupiter.api.Order(10)
-    @DisplayName("Fallback should not crash even if alert fails")
+    @DisplayName("Fallback should complete without throwing when processing exhausts retries")
     void testFallbackProcessPayment_ResilientToAlertFailure() {
         // Given
         doThrow(new RuntimeException("Processing error"))
             .when(paymentProcessService).processPaymentStatus(any(AppyPayWebhookPayload.class));
-        
-        doThrow(new RuntimeException("Alert service down"))
-            .when(alertService).sendWebhookFailureAlert(anyString(), anyString(), anyInt());
 
-        // When & Then - Should not throw exception even if alert fails
+        // When & Then
         assertDoesNotThrow(() -> webhookProcessor.processPayment(testPayload));
     }
 
@@ -320,11 +307,10 @@ class WebhookProcessorTest {
         // When
         webhookProcessor.processPayment(testPayload);
 
-        // Then - Should still attempt processing and send fallback alert
-        verify(alertService, times(1)).sendWebhookFailureAlert(
+        // Then - Fallback marks permanent failure
+        verify(webhookEventService, atLeastOnce()).markAsFailed(
             eq(TEST_TRANSACTION_ID),
-            anyString(),
-            eq(3)
+            contains("PERMANENT_FAILURE")
         );
     }
 
@@ -339,14 +325,11 @@ class WebhookProcessorTest {
         // When
         webhookProcessor.processPayment(testPayload);
 
-        // Then - Fallback should be called (verified by alert)
-        verify(alertService, times(1)).sendWebhookFailureAlert(
+        // Then - Permanent failure recorded
+        verify(webhookEventService, atLeastOnce()).markAsFailed(
             eq(TEST_TRANSACTION_ID),
-            anyString(),
-            eq(3)
+            contains("PERMANENT_FAILURE")
         );
-        // Transaction details (status, amount, customer) should be logged
-        // This is verified through the alert service call
     }
 
     // ============= CONCURRENT PROCESSING TESTS =============

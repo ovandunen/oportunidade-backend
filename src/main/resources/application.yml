@@ -131,12 +131,6 @@ retry:
   initial-delay-ms: ${RETRY_INITIAL_DELAY_MS:1000}
   max-delay-ms: ${RETRY_MAX_DELAY_MS:16000}
 
-# Slack Configuration
-slack:
-  webhook-url: ${SLACK_WEBHOOK_URL:}
-  channel: ${SLACK_CHANNEL:#payment-alerts}
-  enabled: ${SLACK_ENABLED:false}
-
 # Application Configuration
 app:
   base-url: ${BASE_URL:http://localhost:8080}

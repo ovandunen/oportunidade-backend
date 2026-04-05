@@ -12,6 +12,7 @@ import java.util.UUID;
 
 
 @Entity
+@Table(name = "payment_reference")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,21 +28,25 @@ public class PaymentReferenceEntity extends DomainEntity {
     /**
      * Generated 9-digit reference number for MultiCaixa.
      */
+    @Column(name = "reference_number")
     private String referenceNumber;
 
     /**
      * Entity code (e.g. "00123").
      */
+    @Column(name = "entity_code")
     private String entityCode;
 
     /**
      * Full reference as plain text for display/ATM.
      */
+    @Column(name = "reference_text")
     private String referenceText;
 
     /**
      * Amount in AOA.
      */
+    @Column(precision = 19, scale = 2)
     private java.math.BigDecimal amount;
 
     /**
@@ -49,10 +54,12 @@ public class PaymentReferenceEntity extends DomainEntity {
      */
     private String currency;
 
+    @Column(name = "due_date")
     private Instant dueDate;
 
     /**
      * Merchant transaction ID (order link).
      */
+    @Column(name = "merchant_transaction_id")
     private String merchantTransactionId;
 }

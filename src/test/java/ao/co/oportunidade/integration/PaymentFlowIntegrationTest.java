@@ -1,7 +1,6 @@
 package ao.co.oportunidade.integration;
 
 import ao.co.oportunidade.employer.model.EmployerReference;
-import ao.co.oportunidade.notification.service.AlertService;
 import ao.co.oportunidade.order.entity.OrderEntity;
 import ao.co.oportunidade.order.model.PackageType;
 import ao.co.oportunidade.payment.service.NotificationService;
@@ -43,8 +42,7 @@ import static org.mockito.Mockito.when;
  *   AppyPay → POST /webhooks/appypay → PaymentProcessService
  *                                              ├── OdooPaymentService  → WireMock (port 9090)
  *                                              ├── DocumentTokenService → @InjectMock (local JWT)
- *                                              ├── NotificationService  → @InjectMock (email)
- *                                              └── AlertService         → @InjectMock (alerts)
+ *                                              └── NotificationService  → @InjectMock (email)
  *
  * Payment status routing (PaymentProcessService.processPaymentStatus):
  *   SUCCESS   → enrichOrder + COMPLETED + Odoo + token + email notification
@@ -85,9 +83,6 @@ class PaymentProcessIntegrationTest {
     NotificationService notificationService;
 
     @InjectMock
-    AlertService alertService;
-
-    @InjectMock
     DocumentTokenService tokenService;
 
     // ============================================================
@@ -114,7 +109,7 @@ class PaymentProcessIntegrationTest {
     @Transactional
     void setUp() {
         wireMock.resetAll();
-        Mockito.reset(notificationService, alertService, tokenService);
+        Mockito.reset(notificationService, tokenService);
 
         cleanDatabase();
         seedEmployerReference();
@@ -157,28 +152,28 @@ class PaymentProcessIntegrationTest {
 
     @Test
     @Order(2)
-    @DisplayName("SUCCESS: missing employer reference triggers alert, order not completed")
-    void successfulPayment_unknownReference_alertSentAndOrderNotCompleted() {
+    @DisplayName("SUCCESS: missing employer reference prevents order completion")
+    void successfulPayment_unknownReference_orderNotCompleted() {
         AppyPayWebhookPayload payload = buildPayload("SUCCESS");
         payload.getReference().setReferenceNumber("UNKNOWN-REF-999");
 
         postWebhook(payload).statusCode(200);
         processPayloadSync(payload);
 
-        await().atMost(Duration.ofSeconds(10)).pollDelay(Duration.ofSeconds(1)).untilAsserted(() ->
-                verify(alertService).sendEmployerReferenceNotFoundAlert(anyString(), anyString())
+        await().atMost(Duration.ofSeconds(10)).pollDelay(Duration.ofMillis(200)).untilAsserted(() ->
+                QuarkusTransaction.requiringNew().run(() -> {
+                    List<OrderEntity> orders = OrderEntity.list(
+                            "merchantTransactionId", payload.getMerchantTransactionId());
+                    assertFalse(orders.isEmpty());
+                    orders.forEach(o -> assertNotEquals("COMPLETED", o.getStatus()));
+                })
         );
-
-        // No completed order should exist for this transaction
-        List<OrderEntity> orders = OrderEntity.list(
-                "merchantTransactionId", payload.getMerchantTransactionId());
-        orders.forEach(o -> assertNotEquals("COMPLETED", o.getStatus()));
     }
 
     @Test
     @Order(3)
-    @DisplayName("SUCCESS: token generation failure triggers alert but does not fail the payment")
-    void successfulPayment_tokenGenerationFails_alertSentPaymentStillCompleted() {
+    @DisplayName("SUCCESS: token generation failure is logged but payment still completes")
+    void successfulPayment_tokenGenerationFails_paymentStillCompleted() {
         // Simulate token service failure
         when(tokenService.generateAccessToken(any()))
                 .thenThrow(new RuntimeException("JWT key unavailable"));
@@ -192,9 +187,6 @@ class PaymentProcessIntegrationTest {
         awaitOrder(payload.getMerchantTransactionId(), order ->
                 assertEquals("COMPLETED", order.getStatus())
         );
-
-        // Admin must be alerted about the token failure
-        verify(alertService).sendTokenGenerationAlert(any(), anyString());
     }
 
     // ============================================================
@@ -405,11 +397,6 @@ class PaymentProcessIntegrationTest {
         // NotificationService: email sending is a side effect, not under test here
         doNothing().when(notificationService)
                 .sendDocumentAccessEmail(anyString(), anyString(), any(), anyInt());
-
-        // AlertService: alert sending is a side effect, not under test here
-        doNothing().when(alertService).sendTokenGenerationAlert(any(), anyString());
-        doNothing().when(alertService).sendEmployerReferenceNotFoundAlert(anyString(), anyString());
-        doNothing().when(alertService).sendOdooApiFailureAlert(anyString(), anyString());
 
         // DocumentTokenService: returns deterministic test values
         when(tokenService.generateAccessToken(any())).thenReturn("test-access-token");
