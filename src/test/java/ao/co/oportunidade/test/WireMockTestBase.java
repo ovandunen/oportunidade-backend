@@ -12,7 +12,7 @@ import java.util.Map;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 /**
- * WireMock test resource for mocking external services (Odoo API, Slack, etc.).
+ * WireMock test resource for mocking external services (e.g. Odoo API).
  * Automatically starts WireMock server before tests and stops it after.
  * 
  * Usage:
@@ -47,15 +47,12 @@ public class WireMockTestBase implements QuarkusTestResourceLifecycleManager {
         
         // Set up default stubs
         setupDefaultOdooStubs();
-        setupDefaultSlackStubs();
-        
+
         LOG.infof("WireMock server started on port %d", WIREMOCK_PORT);
-        
+
         // Override configuration to point to WireMock
         return Map.of(
-            "odoo.url", "http://localhost:" + WIREMOCK_PORT + "/odoo",
-            "slack.webhook-url", "http://localhost:" + WIREMOCK_PORT + "/slack/webhook",
-            "slack.enabled", "false"
+            "odoo.url", "http://localhost:" + WIREMOCK_PORT + "/odoo"
         );
     }
 
@@ -138,16 +135,6 @@ public class WireMockTestBase implements QuarkusTestResourceLifecycleManager {
                         </params>
                     </methodResponse>
                     """)));
-    }
-
-    /**
-     * Set up default Slack webhook stubs.
-     */
-    private void setupDefaultSlackStubs() {
-        wireMockServer.stubFor(post(urlPathEqualTo("/slack/webhook"))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withBody("ok")));
     }
 
     /**

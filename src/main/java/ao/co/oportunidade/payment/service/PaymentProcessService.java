@@ -12,7 +12,6 @@ import ao.co.oportunidade.webhook.dto.AppyPayWebhookPayload;
 import ao.co.oportunidade.webhook.dto.ReferenceInfo;
 import ao.co.oportunidade.employer.model.EmployerReference;
 import ao.co.oportunidade.order.model.PackageType;
-import ao.co.oportunidade.notification.service.AlertService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -44,8 +43,6 @@ public class PaymentProcessService extends
     @Inject
     NotificationService notificationService;
 
-    @Inject
-    AlertService alertService;
 
     public PaymentProcessService(OdooPaymentService odooPaymentService) {
         this.odooPaymentService = odooPaymentService;
@@ -136,10 +133,6 @@ public class PaymentProcessService extends
         } catch (Exception e) {
             LOG.errorf(e, "Failed to generate access token for order: %s",
                     order.getMerchantTransactionId());
-            // Send alert to admin
-            alertService.sendTokenGenerationAlert(order.getId(), e.getMessage());
-            // Don't fail the payment, but log the error
-            // Admin will need to manually generate token
         }
         // ====================================================
 
@@ -170,8 +163,6 @@ public class PaymentProcessService extends
         if (employer == null) {
             LOG.errorf("No employer found for reference: %s (order: %s)",
                     referenceCode, order.getMerchantTransactionId());
-            // Send alert to admin
-            alertService.sendEmployerReferenceNotFoundAlert(referenceCode, payload.getId());
             throw new IllegalStateException(
                     "Invalid employer reference: " + referenceCode);
         }
@@ -218,8 +209,6 @@ public class PaymentProcessService extends
         } catch (Exception e) {
             LOG.warnf(e, "Failed to send payment to Odoo: %s (will retry)",
                     paymentTransaction.getAppypayTransactionId());
-            // Send alert on each failure
-            alertService.sendOdooApiFailureAlert("sendPaymentToOdoo", e.getMessage());
             throw e; // Re-throw to trigger retry
         }
     }

@@ -62,3 +62,15 @@ If you want to learn more about building native executables, please consult <htt
 Easily start your REST Web Services
 
 [Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+
+### Flyway credentials
+
+# Local manual migration
+mvn flyway:migrate \
+  -Dpostgres.user=$POSTGRES_USER \
+  -Dpostgres.pwd=$POSTGRES_PASSWORD
+
+# Or directly without properties
+mvn flyway:migrate \
+  -Dflyway.user=$POSTGRES_USER \
+  -Dflyway.password=$POSTGRES_PASSWORD

@@ -1,6 +1,5 @@
 package ao.co.oportunidade.webhook.service;
 
-import ao.co.oportunidade.notification.service.AlertService;
 import ao.co.oportunidade.payment.service.PaymentProcessService;
 import ao.co.oportunidade.webhook.dto.AppyPayWebhookPayload;
 import io.smallrye.reactive.messaging.annotations.Blocking;
@@ -17,12 +16,12 @@ import java.time.temporal.ChronoUnit;
 /**
  * Async processor for webhook events using SmallRye Reactive Messaging.
  * Processes webhooks asynchronously after immediate HTTP response.
- * Includes automatic retry logic and admin alerting on failures.
- * 
+ * Includes automatic retry logic and a permanent-failure fallback.
+ *
  * Fault Tolerance Strategy:
  * - @Retry: Automatically retries failed operations (max 3 attempts)
  * - @Timeout: Fails operation if it takes longer than 30 seconds
- * - @Fallback: Sends admin alert when all retries are exhausted
+ * - @Fallback: Marks the webhook failed when all retries are exhausted
  */
 @ApplicationScoped
 public class WebhookProcessor {
@@ -35,8 +34,6 @@ public class WebhookProcessor {
     @Inject
     WebhookEventServiceFacade webhookEventService;
     
-    @Inject
-    AlertService alertService;
 
     /**
      * Process incoming webhook messages asynchronously with fault tolerance.
@@ -45,7 +42,7 @@ public class WebhookProcessor {
      * Fault Tolerance:
      * - Retries up to 3 times with exponential backoff
      * - Times out after 30 seconds per attempt
-     * - Sends admin alert if all retries fail
+     * - Runs fallback if all retries fail
      *
      * @param payload the webhook payload to process
      */
@@ -91,42 +88,31 @@ public class WebhookProcessor {
 
     /**
      * Fallback method called when all retries are exhausted.
-     * Sends critical alert to admin team for manual intervention.
-     * 
+     * Marks the webhook as permanently failed and logs details for investigation.
+     *
      * @param payload the webhook payload that failed
      */
     public void fallbackProcessPayment(AppyPayWebhookPayload payload) {
         final String transactionId = payload.getId();
-        
-        LOG.errorf("All retry attempts exhausted for webhook: %s - sending admin alert", transactionId);
-        
+
+        LOG.errorf("All retry attempts exhausted for webhook: %s", transactionId);
+
         try {
-            // Send critical alert
-            alertService.sendWebhookFailureAlert(
-                transactionId,
-                "All retry attempts exhausted. Manual investigation required.",
-                3 // max retries
-            );
-            
-            // Mark as permanently failed
             webhookEventService.markAsFailed(
-                transactionId, 
+                transactionId,
                 "PERMANENT_FAILURE: All retry attempts exhausted"
             );
-            
-        } catch (Exception alertException) {
-            // If even the alert fails, just log it
-            LOG.errorf(alertException, "Failed to send alert for failed webhook: %s", transactionId);
+        } catch (Exception e) {
+            LOG.errorf(e, "Failed to mark webhook as permanently failed: %s", transactionId);
         }
-        
-        // Log final failure details
+
         LOG.errorf(
-            "CRITICAL: Webhook %s processing failed permanently. " +
-            "Payment status: %s, Amount: %s, Customer: %s",
-            transactionId,
-            payload.getStatus(),
-            payload.getAmount(),
-            payload.getCustomer() != null ? payload.getCustomer().getEmail() : "unknown"
+                "CRITICAL: Webhook %s processing failed permanently. " +
+                        "Payment status: %s, Amount: %s, Customer: %s",
+                transactionId,
+                payload.getStatus(),
+                payload.getAmount(),
+                payload.getCustomer() != null ? payload.getCustomer().getEmail() : "unknown"
         );
     }
 }

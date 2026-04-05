@@ -50,8 +50,10 @@ quarkus:
     port: 8080
     cors:
       enabled: true
-      origins: "*"
-
+      origins:
+        - "http://localhost:3000"
+      methods: GET,POST,PUT,PATCH,DELETE,OPTIONS,HEAD
+      headers: Authorization,Content-Type,Accept
 
   # Logging Configuration
   logging:
@@ -128,12 +130,6 @@ retry:
   max-attempts: ${RETRY_MAX_ATTEMPTS:5}
   initial-delay-ms: ${RETRY_INITIAL_DELAY_MS:1000}
   max-delay-ms: ${RETRY_MAX_DELAY_MS:16000}
-
-# Slack Configuration
-slack:
-  webhook-url: ${SLACK_WEBHOOK_URL:}
-  channel: ${SLACK_CHANNEL:#payment-alerts}
-  enabled: ${SLACK_ENABLED:false}
 
 # Application Configuration
 app:

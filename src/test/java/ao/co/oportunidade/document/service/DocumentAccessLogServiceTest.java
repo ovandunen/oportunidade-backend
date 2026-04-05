@@ -6,7 +6,6 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -263,7 +262,7 @@ class DocumentAccessLogServiceTest {
         // Then
         assertNotNull(failedLogs);
         assertFalse(failedLogs.isEmpty());
-        assertTrue(failedLogs.stream().allMatch(log -> !log.getSuccess()));
+        assertTrue(failedLogs.stream().noneMatch(DocumentAccessAuditLog::getSuccess));
     }
 
     @Test

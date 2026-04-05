@@ -30,6 +30,9 @@ quarkus:
     appypay-api:
       url: http://localhost:8085/emulator/appypay
 
+  devservices:
+    enabled=false:
+
 # Odoo Configuration - Development
 odoo:
   url: http://localhost:8069
@@ -54,12 +57,6 @@ retry:
   max-attempts: 5
   initial-delay-ms: 1000
   max-delay-ms: 16000
-
-# Slack Configuration - Disabled in dev
-slack:
-  webhook-url: http://localhost:9999/fake-slack
-  channel: #dev-alerts
-  enabled: false
 
 # Logging - Development
 "%dev":
