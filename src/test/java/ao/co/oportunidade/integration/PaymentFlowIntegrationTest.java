@@ -164,8 +164,11 @@ class PaymentProcessIntegrationTest {
                 QuarkusTransaction.requiringNew().run(() -> {
                     List<OrderEntity> orders = OrderEntity.list(
                             "merchantTransactionId", payload.getMerchantTransactionId());
-                    assertFalse(orders.isEmpty());
-                    orders.forEach(o -> assertNotEquals("COMPLETED", o.getStatus()));
+                    // Unknown reference fails in enrichOrderWithEmployerInfo before COMPLETED; the outer
+                    // @Transactional rolls back findOrCreateFromWebhook as well, so often there is no row.
+                    assertTrue(
+                            orders.stream().noneMatch(o -> "COMPLETED".equals(o.getStatus())),
+                            "No order may reach COMPLETED when employer reference is invalid");
                 })
         );
     }
